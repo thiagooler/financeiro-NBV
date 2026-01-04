@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
-    <title>NBV 18.2 - Emergency Patch</title>
+    <title>NBV 18.3 - Black Box</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -66,6 +66,7 @@
         .btn-neutral { background: #333; border: 1px solid #555; }
         .btn-github { background: #24292e; border: 1px solid #555; }
         .btn-guardian { background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%); color: black; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+        .btn-danger { background: #ff0000; color: white; border: 1px solid #990000; box-shadow: 0 0 10px rgba(255,0,0,0.4); }
 
         .btn-icon { background: #333; border: 1px solid #555; color: white; width: 35px; height: 35px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: #555; }
@@ -121,6 +122,7 @@
             display: flex; flex-direction: column; gap: 10px;
         }
         .bill-card.auto-gen { border-left-color: var(--primary); background: rgba(0, 242, 255, 0.05); }
+        .bill-card.deleting { opacity: 0.5; pointer-events: none; border-left-color: #555; }
         
         .bill-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .bill-actions { display: flex; gap: 10px; margin-top: 5px; }
@@ -186,15 +188,15 @@
     <div id="global-loading"><div class="spinner"></div><h3 style="margin-top:10px;">Salvando no Cofre...</h3><small style="color:#aaa">Garantindo integridade dos dados.</small></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 18.2</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">Emergency Patch</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 18.3</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Black Box Edition</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
                 🔄 Conectar GitHub (API)
             </button>
             <button class="btn-action btn-neutral" onclick="openGithubConfig()">
-                ⚙️ Configurar
+                ⚙️ Configurar / Reset
             </button>
             <label class="btn-action btn-neutral" style="padding: 10px;">
                 📂 Carregar Arquivo
@@ -313,10 +315,13 @@
     <div id="modal-github" class="modal-overlay">
         <div class="modal-content">
             <h2 class="text-primary">⚙️ Configuração GitHub</h2>
-            <label style="color:#aaa">Token (PAT)</label><input type="password" id="gh-token" class="form-input">
-            <label style="color:#aaa">Usuário</label><input type="text" id="gh-user" class="form-input">
-            <label style="color:#aaa">Repositório</label><input type="text" id="gh-repo" class="form-input">
-            <label style="color:#aaa">Arquivo JSON</label><input type="text" id="gh-file" class="form-input" value="nbv_data.json">
+            <label style="color:#aaa">Token (PAT - Classic)</label><input type="password" id="gh-token" class="form-input" placeholder="ghp_xxxxxxxxxxxx">
+            <label style="color:#aaa">Usuário GitHub</label><input type="text" id="gh-user" class="form-input" placeholder="Ex: usuario123">
+            <label style="color:#aaa">Nome do Repositório</label><input type="text" id="gh-repo" class="form-input" placeholder="Ex: financeiro-nbv">
+            <label style="color:#aaa">Nome do Arquivo (JSON)</label><input type="text" id="gh-file" class="form-input" value="nbv_data.json">
+            
+            <button class="btn-action btn-danger" style="width:100%; margin-bottom:15px; margin-top:10px;" onclick="forceReconnect()">🚑 Reset Total (Nuclear)</button>
+            
             <button class="btn-action btn-in" style="width:100%" onclick="saveGithubConfig()">Salvar Credenciais</button>
             <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button>
         </div>
@@ -428,6 +433,14 @@
             document.getElementById('gh-token').value = cfg.token || ''; document.getElementById('gh-user').value = cfg.user || ''; document.getElementById('gh-repo').value = cfg.repo || ''; document.getElementById('gh-file').value = cfg.file || 'nbv_data.json';
             document.getElementById('modal-config').classList.remove('active'); document.getElementById('modal-github').classList.add('active');
         }
+        
+        function forceReconnect() {
+            if(confirm("ATENÇÃO: Isso vai apagar a configuração local e reconectar do zero. Continuar?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+        
         function showStatus(msg, type) { const el = document.getElementById('status-indicator'); el.innerText = msg; el.className = `status-pill status-${type}`; el.classList.remove('hidden'); if(type === 'saved') setTimeout(() => el.classList.add('hidden'), 3000); }
         function toggleGlobalLoading(show) { document.getElementById('global-loading').style.display = show ? 'flex' : 'none'; }
         function utf8_to_b64(str) { return window.btoa(unescape(encodeURIComponent(str))); }
@@ -444,12 +457,12 @@
             const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}?t=${Date.now()}`;
             try {
                 const res = await fetch(url, { headers: { 'Authorization': `token ${cfg.token}`, 'Accept': 'application/vnd.github.v3+json', 'If-None-Match': '' } });
-                if(res.status === 404) { alert("Arquivo não encontrado. Iniciando novo."); initNewSystem(); forceSaveGitHub(); return; }
+                if(res.status === 404) { alert(`Erro 404: Arquivo '${cfg.file}' não encontrado.\nVerifique o nome exato (maiúsculas/minúsculas).`); document.getElementById('welcome-loading').classList.add('hidden'); document.getElementById('welcome-btns').classList.remove('hidden'); return; }
                 if(!res.ok) throw new Error("Erro Github: " + res.status);
                 const data = await res.json(); currentSha = data.sha; const content = b64_to_utf8(data.content); const loaded = JSON.parse(content);
                 if(!loaded.bills) loaded.bills = []; loaded.boxes.forEach(b => { if(!b.mode) b.mode='monthly'; if(!b.subItems) b.subItems=[]; });
                 appData = loaded; showStatus("Conectado", "saved"); initNewSystem();
-            } catch(e) { console.error(e); alert("Falha na conexão."); document.getElementById('welcome-loading').classList.add('hidden'); document.getElementById('welcome-btns').classList.remove('hidden'); }
+            } catch(e) { console.error(e); alert("Falha na conexão: " + e.message); document.getElementById('welcome-loading').classList.add('hidden'); document.getElementById('welcome-btns').classList.remove('hidden'); }
         }
         async function forceSaveGitHub() {
             const cfg = getGhConfig(); if(!cfg.token || isSaving) return;
@@ -471,8 +484,8 @@
             appData.boxes.forEach(b => { if(b.subItems) b.subItems.forEach(i => {
                 if(i.dueDay && i.freq==='monthly') {
                     const bid = `auto_${b.id}_${i.name.replace(/\s/g,'')}_${k}`;
-                    const isPaid = appData.transactions.some(t => new Date(t.date).getMonth()===today.getMonth() && t.desc.toLowerCase().includes(i.name.toLowerCase()) && (t.type==='out'||t.type==='deleted-auto'));
-                    if(!appData.bills.find(x=>x.autoId===bid) && !isPaid) appData.bills.push({id:Date.now()+Math.random(), autoId:bid, desc:i.name, val:i.val, date:new Date(today.getFullYear(),today.getMonth(),i.dueDay).toISOString().split('T')[0], boxId:b.id, isAuto:true});
+                    const isResolved = appData.transactions.some(t => new Date(t.date).getMonth()===today.getMonth() && t.desc.toLowerCase().includes(i.name.toLowerCase()) && (t.type==='out'||t.type==='deleted-auto'));
+                    if(!appData.bills.find(x=>x.autoId===bid) && !isResolved) appData.bills.push({id:Date.now()+Math.random(), autoId:bid, desc:i.name, val:i.val, date:new Date(today.getFullYear(),today.getMonth(),i.dueDay).toISOString().split('T')[0], boxId:b.id, isAuto:true});
                 }
             })});
         }
