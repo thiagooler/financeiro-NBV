@@ -204,15 +204,6 @@
   "transactions": [],
   "bills": [
     {
-      "id": 1767541894663.4521,
-      "autoId": "auto_fixos_aluguelizabel_2026-0",
-      "desc": "aluguel izabel",
-      "val": 200,
-      "date": "2026-01-05",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
       "id": 1767482479533.2488,
       "autoId": "auto_fixos_agua_2026-0",
       "desc": "agua",
