@@ -7,8 +7,18 @@
       "color": "#ff0055",
       "priority": 0,
       "subItems": [
-        { "name": "carro", "val": 4000, "freq": "annual", "parts": 1 },
-        { "name": "mei", "val": 80, "freq": "monthly", "parts": 1 }
+        {
+          "name": "carro",
+          "val": 4000,
+          "freq": "annual",
+          "parts": 1
+        },
+        {
+          "name": "mei",
+          "val": 80,
+          "freq": "monthly",
+          "parts": 1
+        }
       ],
       "target": 413.3333333333333,
       "current": 413.33,
@@ -20,13 +30,55 @@
       "color": "#ff9900",
       "priority": 0,
       "subItems": [
-        { "name": "agua", "val": 300, "freq": "monthly", "parts": 1, "dueDay": 11 },
-        { "name": "internet", "val": 280, "freq": "monthly", "parts": 1, "dueDay": 5 },
-        { "name": "cleonice", "val": 1000, "freq": "monthly", "parts": 1, "dueDay": 1 },
-        { "name": "soila", "val": 240, "freq": "monthly", "parts": 1, "dueDay": 20 },
-        { "name": "hb20", "val": 1400, "freq": "monthly", "parts": 1, "dueDay": 15 },
-        { "name": "ACEB", "val": 30, "freq": "monthly", "parts": 1, "dueDay": 20 },
-        { "name": "aluguel izabel", "val": 200, "freq": "monthly", "parts": 1, "dueDay": 5 }
+        {
+          "name": "agua",
+          "val": 300,
+          "freq": "monthly",
+          "parts": 1,
+          "dueDay": 11
+        },
+        {
+          "name": "internet",
+          "val": 280,
+          "freq": "monthly",
+          "parts": 1,
+          "dueDay": 5
+        },
+        {
+          "name": "cleonice",
+          "val": 1000,
+          "freq": "monthly",
+          "parts": 1,
+          "dueDay": 1
+        },
+        {
+          "name": "soila",
+          "val": 240,
+          "freq": "monthly",
+          "parts": 1,
+          "dueDay": 20
+        },
+        {
+          "name": "hb20",
+          "val": 1400,
+          "freq": "monthly",
+          "parts": 1,
+          "dueDay": 15
+        },
+        {
+          "name": "ACEB",
+          "val": 30,
+          "freq": "monthly",
+          "parts": 1,
+          "dueDay": 20
+        },
+        {
+          "name": "aluguel izabel",
+          "val": 200,
+          "freq": "monthly",
+          "parts": 1,
+          "dueDay": 5
+        }
       ],
       "target": 3450,
       "current": 2481.88,
@@ -38,7 +90,12 @@
       "color": "#00ccff",
       "priority": 1,
       "subItems": [
-        { "name": "saúde", "val": 5000, "freq": "annual", "parts": 1 }
+        {
+          "name": "saúde",
+          "val": 5000,
+          "freq": "annual",
+          "parts": 1
+        }
       ],
       "target": 5000,
       "current": 1837.29,
@@ -50,7 +107,12 @@
       "color": "#ff0000",
       "priority": 1,
       "subItems": [
-        { "name": "emergencia", "val": 5000, "freq": "annual", "parts": 1 }
+        {
+          "name": "emergencia",
+          "val": 5000,
+          "freq": "annual",
+          "parts": 1
+        }
       ],
       "target": 5000,
       "current": 2192,
@@ -62,7 +124,10 @@
       "color": "#ffffff",
       "priority": 3,
       "subItems": [
-        { "name": "por mes", "val": 2000 }
+        {
+          "name": "por mes",
+          "val": 2000
+        }
       ],
       "target": 2000,
       "current": 633.11,
@@ -74,7 +139,12 @@
       "color": "#00ff9d",
       "priority": 2,
       "subItems": [
-        { "name": "lazer", "val": 6000, "freq": "annual", "parts": 1 }
+        {
+          "name": "lazer",
+          "val": 6000,
+          "freq": "annual",
+          "parts": 1
+        }
       ],
       "target": 6000,
       "current": 1350.25,
@@ -86,10 +156,34 @@
       "color": "#7000ff",
       "priority": 2,
       "subItems": [
-        { "name": "Maquina de lavar", "val": 3000, "freq": "annual", "parts": 1, "dueDay": 15 },
-        { "name": "cadeira ergonomica", "val": 2000, "freq": "annual", "parts": 1, "dueDay": null },
-        { "name": "placa de video", "val": 3000, "freq": "annual", "parts": 1, "dueDay": null },
-        { "name": "ssd para o disco local c", "val": 1000, "freq": "annual", "parts": 1, "dueDay": null }
+        {
+          "name": "Maquina de lavar",
+          "val": 3000,
+          "freq": "annual",
+          "parts": 1,
+          "dueDay": 15
+        },
+        {
+          "name": "cadeira ergonomica",
+          "val": 2000,
+          "freq": "annual",
+          "parts": 1,
+          "dueDay": null
+        },
+        {
+          "name": "placa de video",
+          "val": 3000,
+          "freq": "annual",
+          "parts": 1,
+          "dueDay": null
+        },
+        {
+          "name": "ssd para o disco local c",
+          "val": 1000,
+          "freq": "annual",
+          "parts": 1,
+          "dueDay": null
+        }
       ],
       "target": 9000,
       "current": 1891.54,
@@ -109,8 +203,68 @@
   ],
   "transactions": [],
   "bills": [
-    { "id": 1767482479533.2488, "autoId": "auto_fixos_agua_2026-0", "desc": "agua", "val": 436.4, "date": "2026-01-12", "boxId": "fixos", "isAuto": true },
-    { "id": 1767482479534.0356, "autoId": "auto_fixos_ACEB_2026-0", "desc": "ACEB", "val": 30, "date": "2026-01-20", "boxId": "fixos", "isAuto": true },
-    { "id": 1767485594375.7715, "autoId": "auto_fixos_soila_2026-0", "desc": "soila", "val": 240, "date": "2026-01-20", "boxId": "fixos", "isAuto": true }
+    {
+      "id": 1767482479533.2488,
+      "autoId": "auto_fixos_agua_2026-0",
+      "desc": "agua",
+      "val": 436.4,
+      "date": "2026-01-12",
+      "boxId": "fixos",
+      "isAuto": true
+    },
+    {
+      "id": 1767482479534.0356,
+      "autoId": "auto_fixos_ACEB_2026-0",
+      "desc": "ACEB",
+      "val": 30,
+      "date": "2026-01-20",
+      "boxId": "fixos",
+      "isAuto": true
+    },
+    {
+      "id": 1767485594375.7715,
+      "autoId": "auto_fixos_soila_2026-0",
+      "desc": "soila",
+      "val": 240,
+      "date": "2026-01-20",
+      "boxId": "fixos",
+      "isAuto": true
+    },
+    {
+      "id": 1767541894663.33,
+      "autoId": "auto_fixos_internet_2026-0",
+      "desc": "internet",
+      "val": 280,
+      "date": "2026-01-05",
+      "boxId": "fixos",
+      "isAuto": true
+    },
+    {
+      "id": 1767541894663.7625,
+      "autoId": "auto_fixos_cleonice_2026-0",
+      "desc": "cleonice",
+      "val": 1000,
+      "date": "2026-01-01",
+      "boxId": "fixos",
+      "isAuto": true
+    },
+    {
+      "id": 1767541894663.0657,
+      "autoId": "auto_fixos_hb20_2026-0",
+      "desc": "hb20",
+      "val": 1400,
+      "date": "2026-01-15",
+      "boxId": "fixos",
+      "isAuto": true
+    },
+    {
+      "id": 1767541894663.4521,
+      "autoId": "auto_fixos_aluguelizabel_2026-0",
+      "desc": "aluguel izabel",
+      "val": 200,
+      "date": "2026-01-05",
+      "boxId": "fixos",
+      "isAuto": true
+    }
   ]
 }
