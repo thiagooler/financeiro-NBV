@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBV 17.13 - Strategy Commander</title>
+    <title>NBV 17.14 - Conflict Resolver</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -61,6 +61,7 @@
         .btn-ai { background: linear-gradient(135deg, #00f2ff 0%, #0078ff 100%); color: #000; box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); }
         .btn-neutral { background: #333; border: 1px solid #555; }
         .btn-github { background: #24292e; border: 1px solid #555; }
+        .btn-debug { background: #ff9900; color: #000; font-weight: bold; }
         
         .btn-icon { background: #333; border: 1px solid #555; color: white; width: 35px; height: 35px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: #555; }
@@ -167,8 +168,8 @@
         .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .status-pill { position: fixed; top: 10px; right: 10px; padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; z-index: 200; font-weight: bold; display: flex; align-items: center; gap: 5px; opacity: 0.8; }
-        .status-sync { background: var(--primary); color: #000; }
+        .status-pill { position: fixed; top: 10px; right: 10px; padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; z-index: 200; font-weight: bold; display: flex; align-items: center; gap: 5px; opacity: 0.9; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .status-sync { background: var(--gold); color: #000; }
         .status-saved { background: var(--success); color: #000; }
         .status-error { background: var(--danger); color: white; }
 
@@ -182,8 +183,8 @@
     <div id="status-indicator" class="status-pill hidden"></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.13</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">Strategy Commander</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.14</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Conflict Resolver Edition</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
@@ -470,6 +471,7 @@
             transactions: []
         };
         let currentSha = null; // Store GitHub SHA for updates
+        let isSaving = false; // LOCK VARIABLE
         let transType = 'in';
         let currentBoxIdx = null;
 
@@ -508,7 +510,6 @@
             document.getElementById('gh-repo').value = cfg.repo || '';
             document.getElementById('gh-file').value = cfg.file || 'nbv_data.json';
             
-            // CORRECTION: Close config modal to prevent overlap
             document.getElementById('modal-config').classList.remove('active');
             document.getElementById('modal-github').classList.add('active');
         }
@@ -573,11 +574,19 @@
             }
         }
 
+        // --- FORCE SAVE GITHUB (CONFLICT RESOLVER) ---
         async function forceSaveGitHub() {
             const cfg = getGhConfig();
-            if(!cfg.token) return; 
+            if(!cfg.token) return; // Local mode only
             
-            showStatus("Salvando...", "sync");
+            // LOCK: Prevent double clicks
+            if (isSaving) {
+                console.log("Save in progress... Action queued or ignored.");
+                return; 
+            }
+            
+            isSaving = true;
+            showStatus("Sincronizando...", "sync");
             
             const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}`;
             const contentJson = JSON.stringify(appData, null, 2);
@@ -600,12 +609,19 @@
                 });
                 
                 if(!res.ok) throw new Error("Erro Save");
+                
                 const data = await res.json();
+                // CRITICAL: Update SHA immediately so next save works
                 currentSha = data.content.sha; 
+                
                 showStatus("Salvo na Nuvem", "saved");
             } catch(e) {
                 console.error(e);
                 showStatus("Erro ao Salvar", "error");
+                // Optional: Re-fetch data if save failed due to conflict
+                // attemptGithubLoad(); 
+            } finally {
+                isSaving = false; // UNLOCK
             }
         }
 
@@ -618,7 +634,6 @@
             const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             const recentTrans = appData.transactions.filter(t => new Date(t.date) >= thirtyDaysAgo && t.type === 'out');
             
-            // Summarize Expenses by Category
             let expenseSummary = {};
             recentTrans.forEach(t => {
                 let cat = t.box ? appData.boxes.find(b => b.id === t.box)?.label : 'Geral';
@@ -635,7 +650,7 @@
                     current: b.current, 
                     target: b.target, 
                     mode: b.mode,
-                    subItems: b.subItems.map(s => ({name: s.name, val: s.val, priority: s.priority || 3})) // Include Priority
+                    subItems: b.subItems.map(s => ({name: s.name, val: s.val, priority: s.priority || 3})) 
                 })),
                 pendingBills: appData.bills.map(b => ({desc: b.desc, val: b.val, date: b.date})),
                 last30DaysExpenses: expenseSummary
