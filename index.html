@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
-    <title>NBV 18.7 - Bug Hunter</title>
+    <title>NBV 18.8 - Precision Strike</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -188,8 +188,8 @@
     <div id="global-loading"><div class="spinner"></div><h3 style="margin-top:10px;">Salvando no Cofre...</h3><small style="color:#aaa">Garantindo integridade dos dados.</small></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 18.7</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">Bug Hunter Edition</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 18.8</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Precision Strike</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
@@ -363,31 +363,28 @@
         function initNewSystem() {
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
-            
             const now = new Date();
             const startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
             const endStr = now.toISOString().split('T')[0];
-            
             if(document.getElementById('rep-start')) document.getElementById('rep-start').value = startStr;
             if(document.getElementById('rep-end')) document.getElementById('rep-end').value = endStr;
-            
-            sanitizeBills();
-            autoGenerateBills();
+            sanitizeBills(); autoGenerateBills(); 
             if(typeof renderDashboard === 'function') renderDashboard();
             if(typeof renderBills === 'function') renderBills();
         }
 
+        // --- RECALC DIST (RESTORED) ---
+        function recalcDist() {
+            let total = 0;
+            document.querySelectorAll('.dist-inp').forEach(i => total += parseFloat(i.value || 0));
+            document.getElementById('dist-total-alloc').innerText = fmt(total);
+            document.getElementById('dist-remain').innerText = fmt(appData.masterBalance - total);
+        }
+
         // --- GUARDIAN LOGIC ---
         function openGuardianModal() {
-            document.getElementById('g-item').value = '';
-            document.getElementById('g-price').value = '';
-            document.getElementById('g-reason').value = '';
-            document.getElementById('g-prompt-out').value = '';
-            document.getElementById('g-json-in').value = '';
-            document.getElementById('guardian-step-1').classList.remove('hidden');
-            document.getElementById('guardian-result').classList.add('hidden');
-            document.getElementById('modal-guardian').classList.add('active');
-            guardianSuggestedBoxId = null;
+            document.getElementById('g-item').value = ''; document.getElementById('g-price').value = ''; document.getElementById('g-reason').value = ''; document.getElementById('g-prompt-out').value = ''; document.getElementById('g-json-in').value = '';
+            document.getElementById('guardian-step-1').classList.remove('hidden'); document.getElementById('guardian-result').classList.add('hidden'); document.getElementById('modal-guardian').classList.add('active'); guardianSuggestedBoxId = null;
         }
 
         function generateGuardianPrompt() {
@@ -396,32 +393,26 @@
             const reason = document.getElementById('g-reason').value;
             if(!item || !price) return alert("Preencha o que e quanto!");
             
-            // CONTEXT INTELLIGENCE: PENDING BILLS ONLY
-            const today = new Date();
-            const next15Days = new Date(); next15Days.setDate(today.getDate() + 15);
-            // ONLY sum actual pending bills in appData.bills, not abstract box items
-            const urgentBills = appData.bills.filter(b => new Date(b.date) <= next15Days).reduce((sum, b) => sum + b.val, 0);
+            // STRICT BILLS FILTER: Only count bills currently in the PENDING list (appData.bills)
+            const urgentBills = appData.bills.reduce((sum, b) => sum + b.val, 0);
             
             const context = {
                 item: item,
                 price: parseFloat(price),
                 reason: reason,
                 master_balance: appData.masterBalance,
-                bills_due_15_days: urgentBills,
-                boxes: appData.boxes.map(b => ({
-                    id: b.id,
+                ACTUAL_PENDING_BILLS_TOTAL: urgentBills,
+                pending_bills_list: appData.bills.map(b => `${b.desc} (${fmt(b.val)})`),
+                box_structure_reference_only: appData.boxes.map(b => ({
                     name: b.label,
                     balance: b.current,
                     projects: b.subItems.map(s => ({name: s.name, priority: s.priority || 3}))
                 }))
             };
 
-            const prompt = `Sou o Thiago (Warrior, TDAH). Quero comprar algo fora do plano.\nDADOS COMPLETOS:\n${JSON.stringify(context)}\nMISSÃO:\n1. Analise se posso comprar o item '${item}' por R$ ${price}.\n2. Se aprovado, diga de qual caixa devo tirar o dinheiro (escolha uma das 'boxes' enviadas).\n3. Se negado, explique o motivo (ex: tem conta urgente, prioridade P1 pendente).\nResponda APENAS JSON:\n{\n  "verdict": "APROVADO" ou "NEGADO",\n  "message": "Explicação curta.",\n  "safe_to_spend": true/false,\n  "suggested_box_name": "Nome Exato da Caixa Sugerida (ou null se negado)"\n}`;
+            const prompt = `Sou o Thiago (Warrior, TDAH). Quero comprar algo fora do plano.\nDADOS COMPLETOS:\n${JSON.stringify(context)}\nMISSÃO:\n1. Analise se posso comprar o item '${item}' por R$ ${price}.\n2. IMPORTANTE: Use apenas 'ACTUAL_PENDING_BILLS_TOTAL' e 'pending_bills_list' para saber o que devo. Ignore itens em 'box_structure_reference_only' se não estiverem na lista de pendências (significa que já paguei).\n3. Se aprovado, diga de qual caixa devo tirar o dinheiro.\nResponda APENAS JSON:\n{\n  "verdict": "APROVADO" ou "NEGADO",\n  "message": "Explicação curta.",\n  "safe_to_spend": true/false,\n  "suggested_box_name": "Nome Exato da Caixa Sugerida (ou null)"\n}`;
             const txt = document.getElementById('g-prompt-out');
-            txt.value = prompt;
-            txt.select();
-            document.execCommand('copy');
-            alert("Copiado! Cole na IA e traga a resposta.");
+            txt.value = prompt; txt.select(); document.execCommand('copy'); alert("Copiado! Cole na IA e traga a resposta.");
         }
 
         function processGuardianResponse() {
@@ -438,41 +429,24 @@
                     box.style.background = 'rgba(0, 255, 157, 0.2)'; box.style.border = '2px solid var(--success)'; title.innerText = "✅ " + json.verdict; title.style.color = 'var(--success)';
                     if(json.suggested_box_name) {
                         const matchedBox = appData.boxes.find(b => b.label.toLowerCase() === json.suggested_box_name.toLowerCase());
-                        if(matchedBox) {
-                            guardianSuggestedBoxId = matchedBox.id;
-                            suggestDiv.innerText = `Fonte Recomendada: ${matchedBox.label} (Saldo: ${fmt(matchedBox.current)})`;
-                        } else {
-                            suggestDiv.innerText = `Fonte Sugerida: ${json.suggested_box_name}`;
-                        }
+                        if(matchedBox) { guardianSuggestedBoxId = matchedBox.id; suggestDiv.innerText = `Fonte Recomendada: ${matchedBox.label} (Saldo: ${fmt(matchedBox.current)})`; } 
+                        else { suggestDiv.innerText = `Fonte Sugerida: ${json.suggested_box_name}`; }
                     }
                 } else {
-                    box.style.background = 'rgba(255, 0, 85, 0.2)'; box.style.border = '2px solid var(--danger)'; title.innerText = "⛔ " + json.verdict; title.style.color = 'var(--danger)';
-                    suggestDiv.innerText = "";
+                    box.style.background = 'rgba(255, 0, 85, 0.2)'; box.style.border = '2px solid var(--danger)'; title.innerText = "⛔ " + json.verdict; title.style.color = 'var(--danger)'; suggestDiv.innerText = "";
                 }
                 text.innerText = json.message;
-                document.getElementById('guardian-step-1').classList.add('hidden');
-                document.getElementById('guardian-result').classList.remove('hidden');
+                document.getElementById('guardian-step-1').classList.add('hidden'); document.getElementById('guardian-result').classList.remove('hidden');
             } catch(e) { alert("Erro ao ler JSON. Cole apenas o código."); }
         }
 
         function confirmGuardianSpend() {
-            const item = document.getElementById('g-item').value;
-            const price = document.getElementById('g-price').value;
-            closeModals();
-            openTransModal('out');
-            document.getElementById('t-desc').value = item;
-            document.getElementById('t-amt').value = price;
-            if(guardianSuggestedBoxId) {
-                const sel = document.getElementById('t-box');
-                sel.value = guardianSuggestedBoxId;
-                checkSourceSelected(sel);
-            }
+            const item = document.getElementById('g-item').value; const price = document.getElementById('g-price').value;
+            closeModals(); openTransModal('out');
+            document.getElementById('t-desc').value = item; document.getElementById('t-amt').value = price;
+            if(guardianSuggestedBoxId) { const sel = document.getElementById('t-box'); sel.value = guardianSuggestedBoxId; checkSourceSelected(sel); }
         }
-
-        function recordVictory() {
-            alert("🏆 VITÓRIA! Você resistiu ao impulso. O general está orgulhoso.");
-            closeModals();
-        }
+        function recordVictory() { alert("🏆 VITÓRIA! O general está orgulhoso."); closeModals(); }
 
         // --- EXISTING FUNCTIONS ---
         function getGhConfig() { return { token: localStorage.getItem('nbv_gh_token'), user: localStorage.getItem('nbv_gh_user'), repo: localStorage.getItem('nbv_gh_repo'), file: localStorage.getItem('nbv_gh_file') || 'nbv_data.json' }; }
@@ -494,46 +468,35 @@
         function b64_to_utf8(str) { return decodeURIComponent(escape(window.atob(str))); }
         async function getLatestSha() { const cfg = getGhConfig(); const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}?t=${Date.now()}`; const res = await fetch(url, { headers: { 'Authorization': `token ${cfg.token}`, 'Accept': 'application/vnd.github.v3+json', 'If-None-Match': '' } }); if(res.ok) { const data = await res.json(); return data.sha; } return null; }
         async function attemptGithubLoad() { const cfg = getGhConfig(); if(!cfg.token) { openGithubConfig(); return; } document.getElementById('welcome-btns').classList.add('hidden'); document.getElementById('welcome-loading').classList.remove('hidden'); const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}?t=${Date.now()}`; try { const res = await fetch(url, { headers: { 'Authorization': `token ${cfg.token}`, 'Accept': 'application/vnd.github.v3+json', 'If-None-Match': '' } }); if(res.status === 404) { alert(`Erro 404: Arquivo não encontrado.`); document.getElementById('welcome-loading').classList.add('hidden'); document.getElementById('welcome-btns').classList.remove('hidden'); return; } if(!res.ok) throw new Error("Erro Github: " + res.status); const data = await res.json(); currentSha = data.sha; const content = b64_to_utf8(data.content); const loaded = JSON.parse(content); if(!loaded.bills) loaded.bills = []; loaded.boxes.forEach(b => { if(!b.mode) b.mode='monthly'; if(!b.subItems) b.subItems=[]; }); appData = loaded; showStatus("Conectado", "saved"); initNewSystem(); } catch(e) { console.error(e); alert("Falha na conexão: " + e.message); document.getElementById('welcome-loading').classList.add('hidden'); document.getElementById('welcome-btns').classList.remove('hidden'); } }
-        async function forceSaveGitHub() { const cfg = getGhConfig(); if(!cfg.token || isSaving) return; isSaving = true; toggleGlobalLoading(true); showStatus("Salvando...", "sync"); try { const freshSha = await getLatestSha(); if(freshSha) currentSha = freshSha; const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}`; const body = { message: "Update NBV Data [skip ci]", content: utf8_to_b64(JSON.stringify(appData)), sha: currentSha }; const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${cfg.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if(!res.ok) throw new Error("Erro Save: " + res.status); const data = await res.json(); currentSha = data.content.sha; showStatus("Salvo", "saved"); } catch(e) { showStatus("Erro ao Salvar", "error"); alert("Erro ao salvar! Tente novamente em alguns segundos."); } finally { isSaving = false; toggleGlobalLoading(false); } }
+        async function forceSaveGitHub() { const cfg = getGhConfig(); if(!cfg.token || isSaving) return; isSaving = true; toggleGlobalLoading(true); showStatus("Salvando...", "sync"); try { const freshSha = await getLatestSha(); if(freshSha) currentSha = freshSha; const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}`; const body = { message: "Update NBV Data [skip ci]", content: utf8_to_b64(JSON.stringify(appData)), sha: currentSha }; const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${cfg.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if(!res.ok) throw new Error("Erro Save: " + res.status); const data = await res.json(); currentSha = data.content.sha; showStatus("Salvo", "saved"); } catch(e) { showStatus("Erro ao Salvar", "error"); alert("Erro ao salvar! Tente novamente."); } finally { isSaving = false; toggleGlobalLoading(false); } }
         function sanitizeBills() { const m=new Date().getMonth(), y=new Date().getFullYear(); appData.bills = appData.bills.filter(b => !b.isAuto || !appData.transactions.some(t => new Date(t.date).getMonth()===m && new Date(t.date).getFullYear()===y && t.desc.toLowerCase().includes(b.desc.toLowerCase()) && (t.type==='out'||t.type==='deleted-auto'))); }
         function autoGenerateBills() { const today = new Date(); const k = `${today.getFullYear()}-${today.getMonth()}`; appData.boxes.forEach(b => { if(b.subItems) b.subItems.forEach(i => { if(i.dueDay && i.freq==='monthly') { const bid = `auto_${b.id}_${i.name.replace(/\s/g,'')}_${k}`; const isResolved = appData.transactions.some(t => new Date(t.date).getMonth()===today.getMonth() && t.desc.toLowerCase().includes(i.name.toLowerCase()) && (t.type==='out'||t.type==='deleted-auto')); if(!appData.bills.find(x=>x.autoId===bid) && !isResolved) appData.bills.push({id:Date.now()+Math.random(), autoId:bid, desc:i.name, val:i.val, date:new Date(today.getFullYear(),today.getMonth(),i.dueDay).toISOString().split('T')[0], boxId:b.id, isAuto:true}); } })}); }
         
-        function openManualAIDistribution() { const avail = appData.masterBalance; if(avail <= 0) return alert('Sem saldo.'); const d30 = new Date(); d30.setDate(d30.getDate()-30); const exp = {}; appData.transactions.filter(t=>new Date(t.date)>=d30 && t.type==='out').forEach(t=>{ let c = t.box?appData.boxes.find(b=>b.id===t.box)?.label:'Geral'; if(!c)c='Outros'; exp[c]=(exp[c]||0)+t.amount; }); const ctx = { currentDate: new Date().toISOString().split('T')[0], availableFunds: avail, boxes: appData.boxes.map(b=>({name:b.label, current:b.current, target:b.target, mode:b.mode, subItems:b.subItems})), pendingBills:appData.bills, last30: exp }; const prompt = `Sou o Thiago (Warrior, TDAH). Saldo: ${avail}.\nDados: ${JSON.stringify(ctx)}\nPrioridade: Contas < 15 dias > Caixas Negativas > Projetos P1 > Reserva.\nResponda JSON: { "insight": "Resumo", "plan": [{ "name": "NomeCaixa", "val": 0, "reason": "Motivo" }] }`; document.getElementById('ai-prompt-output').value = prompt; document.getElementById('modal-manual-ai').classList.add('active'); }
+        // --- MANUAL AI DISTRIBUTION (UPDATED PROMPT) ---
+        function openManualAIDistribution() { 
+            const avail = appData.masterBalance; if(avail <= 0) return alert('Sem saldo.'); 
+            const urgentBills = appData.bills.reduce((sum, b) => sum + b.val, 0);
+            
+            const context = {
+                currentDate: new Date().toISOString().split('T')[0],
+                availableFunds: avail,
+                ACTUAL_PENDING_BILLS_TOTAL: urgentBills,
+                pending_bills_list: appData.bills.map(b => `${b.desc} (${fmt(b.val)})`),
+                box_structure_reference: appData.boxes.map(b=>({name:b.label, current:b.current, target:b.target, mode:b.mode, subItems:b.subItems}))
+            };
+            const prompt = `Sou o Thiago (Warrior, TDAH). Saldo: ${avail}.\nDADOS:\n${JSON.stringify(context)}\nMISSÃO:\n1. Distribua o saldo.\n2. CRUCIAL: Use 'ACTUAL_PENDING_BILLS_TOTAL' para saber o que devo. Se um item da 'box_structure' não estiver na 'pending_bills_list', É PORQUE JÁ FOI PAGO. IGNORE-O.\nPrioridade: Contas da lista de pendências > Caixas Negativas > Projetos P1 > Reserva.\nResponda JSON: { "insight": "Resumo", "plan": [{ "name": "NomeCaixa", "val": 0, "reason": "Motivo" }] }`; 
+            document.getElementById('ai-prompt-output').value = prompt; document.getElementById('modal-manual-ai').classList.add('active'); 
+        }
         function copyPrompt() { const t=document.getElementById('ai-prompt-output'); t.select(); document.execCommand('copy'); alert("Copiado!"); }
         function processManualAI() { try { const j = JSON.parse(document.getElementById('ai-json-input').value.replace(/```json/g,'').replace(/```/g,'').trim()); const plan = j.plan.map(p => { const b = appData.boxes.find(x=>x.label.toLowerCase()===p.name.toLowerCase()); return { id: b?b.id:'gerais', name:b?b.label:p.name, val:p.val, reason:p.reason }; }); document.getElementById('modal-manual-ai').classList.remove('active'); renderDistModal(plan, j.insight); } catch(e) { alert("Erro JSON: "+e.message); } }
         function renderDistModal(plan, insight) { document.getElementById('ai-insight').innerText = "⚔️ " + insight; const l = document.getElementById('distribution-list'); l.innerHTML=''; plan.forEach(i => { if(i.val>0.01) l.innerHTML+=`<div style="background:#222; padding:10px; margin-bottom:5px; border-radius:5px; display:flex; justify-content:space-between; align-items:center;"><div>${i.name}<div style="font-size:0.7rem; color:#aaa">${i.reason}</div></div><input type="number" class="dist-inp" data-id="${i.id}" value="${i.val.toFixed(2)}" style="width:100px; background:#000; border:1px solid #444; color:white; padding:5px; text-align:right;" oninput="recalcDist()"></div>`; }); document.getElementById('modal-distribute').classList.add('active'); recalcDist(); }
         
-        // RESTORED FUNCTION
         async function commitDistribution() {
-            let total = 0;
-            const inputs = document.querySelectorAll('.dist-inp');
-            
+            let total = 0; const inputs = document.querySelectorAll('.dist-inp');
             inputs.forEach(i => total += parseFloat(i.value || 0));
-            
-            if(total > appData.masterBalance + 0.1) return alert(`Saldo insuficiente! Tentando usar ${fmt(total)}, mas tem ${fmt(appData.masterBalance)}`);
-
-            inputs.forEach(i => {
-                const val = parseFloat(i.value || 0);
-                if(val > 0) {
-                    const box = appData.boxes.find(b => b.id === i.dataset.id);
-                    if(box) {
-                        box.current += val;
-                        appData.transactions.push({
-                            id: Date.now(),
-                            date: new Date().toISOString(),
-                            type: 'dist',
-                            amount: val,
-                            desc: 'IA Distribuição',
-                            box: box.id
-                        });
-                    }
-                }
-            });
-
-            appData.masterBalance -= total;
-            closeModals();
-            renderDashboard();
-            await forceSaveGitHub();
+            if(total > appData.masterBalance + 0.1) return alert(`Saldo insuficiente!`);
+            inputs.forEach(i => { const val = parseFloat(i.value || 0); if(val > 0) { const box = appData.boxes.find(b => b.id === i.dataset.id); if(box) { box.current += val; appData.transactions.push({ id: Date.now(), date: new Date().toISOString(), type: 'dist', amount: val, desc: 'IA Distribuição', box: box.id }); } } });
+            appData.masterBalance -= total; closeModals(); renderDashboard(); await forceSaveGitHub();
         }
 
         function openBillModal() { const s=document.getElementById('b-box'); s.innerHTML=''; appData.boxes.forEach(b=>s.innerHTML+=`<option value="${b.id}">${b.label}</option>`); document.getElementById('b-id').value=''; document.getElementById('b-desc').value=''; document.getElementById('b-val').value=''; document.getElementById('b-date').value=new Date().toISOString().split('T')[0]; document.getElementById('modal-bill').classList.add('active'); }
