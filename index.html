@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBV 17.12 - Manual Command</title>
+    <title>NBV 17.13 - System Check</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -61,6 +61,7 @@
         .btn-ai { background: linear-gradient(135deg, #00f2ff 0%, #0078ff 100%); color: #000; box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); }
         .btn-neutral { background: #333; border: 1px solid #555; }
         .btn-github { background: #24292e; border: 1px solid #555; }
+        .btn-debug { background: #ff9900; color: #000; font-weight: bold; }
         
         .btn-icon { background: #333; border: 1px solid #555; color: white; width: 35px; height: 35px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: #555; }
@@ -176,8 +177,8 @@
     <div id="status-indicator" class="status-pill hidden"></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.12</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">Manual Command Edition</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.13</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">System Check Edition</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
@@ -300,7 +301,7 @@
     <div id="modal-github" class="modal-overlay">
         <div class="modal-content">
             <h2 class="text-primary">⚙️ Configuração GitHub</h2>
-            <p style="color:#888; font-size:0.8rem; margin-bottom:15px;">Os dados serão salvos no repositório privado abaixo.</p>
+            <p style="color:#888; font-size:0.8rem; margin-bottom:15px;">Se os dados não carregam, verifique o Nome do Arquivo.</p>
             
             <label style="color:#aaa">Token (PAT - Classic)</label>
             <input type="password" id="gh-token" class="form-input" placeholder="ghp_xxxxxxxxxxxx">
@@ -311,8 +312,11 @@
             <label style="color:#aaa">Nome do Repositório</label>
             <input type="text" id="gh-repo" class="form-input" placeholder="Ex: financeiro-nbv">
             
-            <label style="color:#aaa">Nome do Arquivo (JSON)</label>
-            <input type="text" id="gh-file" class="form-input" value="nbv_data.json">
+            <label style="color:var(--gold)">Nome do Arquivo (Cuidado!)</label>
+            <input type="text" id="gh-file" class="form-input" value="nbv_data.json" placeholder="nbv_data.json">
+            <small style="color:#666; display:block; margin-bottom:10px">Se você subiu o arquivo manualmente, use o nome exato (ex: NBV_AI_Financeiro.json)</small>
+
+            <button class="btn-action btn-debug" style="width:100%; margin-bottom:10px;" onclick="diagnoseConnection()">🕵️ Diagnóstico Completo</button>
 
             <button class="btn-action btn-in" style="width:100%" onclick="saveGithubConfig()">Salvar Credenciais</button>
             <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button>
@@ -398,7 +402,7 @@
                 <h2>Configurar</h2>
                 <button class="btn-action btn-in" style="padding:5px 10px; font-size:0.8rem" onclick="addNewBox()">+ Caixa</button>
             </div>
-            <button class="btn-action btn-github" style="width:100%; margin-top:15px; font-size:0.8rem" onclick="openGithubConfig()">🔧 Alterar GitHub Token</button>
+            <button class="btn-action btn-github" style="width:100%; margin-top:15px; font-size:0.8rem" onclick="openGithubConfig()">🔧 Configurar GitHub</button>
             <div id="config-list" style="display:flex; flex-direction:column; gap:10px; margin-top:15px; max-height:300px; overflow-y:auto"></div>
             <button class="btn-action btn-neutral" style="width:100%; margin-top:10px;" onclick="closeConfigModal()">Fechar</button>
         </div>
@@ -496,7 +500,6 @@
             document.getElementById('gh-repo').value = cfg.repo || '';
             document.getElementById('gh-file').value = cfg.file || 'nbv_data.json';
             
-            // CORRECTION: Close config modal to prevent overlap
             document.getElementById('modal-config').classList.remove('active');
             document.getElementById('modal-github').classList.add('active');
         }
@@ -509,10 +512,32 @@
             if(type === 'saved') setTimeout(() => el.classList.add('hidden'), 3000);
         }
 
-        // --- GITHUB API ENGINE ---
-        // Helper to encode UTF-8 to Base64 (needed for Portuguese characters)
+        // --- GITHUB API ENGINE (DIAGNOSTIC MODE) ---
         function utf8_to_b64(str) { return window.btoa(unescape(encodeURIComponent(str))); }
         function b64_to_utf8(str) { return decodeURIComponent(escape(window.atob(str))); }
+
+        async function diagnoseConnection() {
+            const cfg = getGhConfig();
+            if(!cfg.token) return alert('Salve o token primeiro.');
+            
+            const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}`;
+            
+            alert(`🔍 TESTE DE CONEXÃO:\n\nVou tentar acessar:\n${url}\n\nSe der erro, verifique se o NOME DO ARQUIVO no GitHub é exatamente '${cfg.file}'.`);
+
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `token ${cfg.token}`, 'Accept': 'application/vnd.github.v3+json' }
+                });
+
+                if(res.ok) {
+                    alert("✅ SUCESSO! Conexão estabelecida e arquivo encontrado.");
+                } else {
+                    alert(`❌ ERRO ${res.status}: ${res.statusText}\n\nProvável causa:\n- 404: Arquivo '${cfg.file}' não existe ou Repo '${cfg.repo}' errado.\n- 401: Token inválido.\n- 403: Token sem permissão 'repo'.`);
+                }
+            } catch(e) {
+                alert("❌ ERRO DE REDE: " + e.message);
+            }
+        }
 
         async function attemptGithubLoad() {
             const cfg = getGhConfig();
@@ -535,21 +560,18 @@
                 });
 
                 if(res.status === 404) {
-                    // File doesn't exist yet, init fresh
-                    alert("Arquivo não encontrado no Repo. Iniciando novo banco de dados.");
+                    alert(`⚠️ Arquivo '${cfg.file}' não encontrado no GitHub.\nO sistema vai criar um novo quando você salvar.`);
                     initNewSystem();
-                    forceSaveGitHub(); // Create the file
                     return;
                 }
 
                 if(!res.ok) throw new Error("Erro Github: " + res.status);
 
                 const data = await res.json();
-                currentSha = data.sha; // Important for updates!
-                const content = b64_to_utf8(data.content); // Decode Base64
+                currentSha = data.sha; 
+                const content = b64_to_utf8(data.content); 
                 
                 const loaded = JSON.parse(content);
-                // Schema Migration Checks
                 if(!loaded.bills) loaded.bills = [];
                 loaded.boxes.forEach(b => { if(!b.mode) b.mode='monthly'; if(!b.subItems) b.subItems=[]; });
                 
@@ -558,7 +580,7 @@
                 initNewSystem();
             } catch(e) {
                 console.error(e);
-                alert("Falha ao conectar GitHub. Verifique token/internet.");
+                alert(`Falha na conexão (${e.message}). Verifique no botão Diagnóstico.`);
                 document.getElementById('welcome-loading').classList.add('hidden');
                 document.getElementById('welcome-btns').classList.remove('hidden');
             }
@@ -566,7 +588,7 @@
 
         async function forceSaveGitHub() {
             const cfg = getGhConfig();
-            if(!cfg.token) return; // Local mode only
+            if(!cfg.token) return; 
             
             showStatus("Salvando...", "sync");
             
@@ -592,7 +614,7 @@
                 
                 if(!res.ok) throw new Error("Erro Save");
                 const data = await res.json();
-                currentSha = data.content.sha; // Update SHA for next save
+                currentSha = data.content.sha; 
                 showStatus("Salvo na Nuvem", "saved");
             } catch(e) {
                 console.error(e);
@@ -651,13 +673,11 @@ Responda APENAS com este formato JSON cru (sem markdown, sem 'json', sem texto a
             if(!rawJson) return alert("Cole o JSON primeiro!");
 
             try {
-                // Clean input
                 let clean = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
                 const json = JSON.parse(clean);
 
                 if(!json.plan) throw new Error("Formato inválido");
 
-                // Map names back to IDs
                 let plan = json.plan.map(p => {
                     let box = appData.boxes.find(b => b.label.toLowerCase() === p.name.toLowerCase());
                     return {
@@ -1010,8 +1030,31 @@ Responda APENAS com este formato JSON cru (sem markdown, sem 'json', sem texto a
             if(totalPaid > 0) { creditBox.current -= totalPaid; closeModals(); renderDashboard(); forceSaveGitHub(); } else { alert("Valor zerado."); }
         }
 
+        // --- RENDER & CONFIG ---
+        function renderDashboard() {
+            document.getElementById('master-balance').innerText = fmt(appData.masterBalance);
+            const container = document.getElementById('boxes-container'); container.innerHTML = '';
+            appData.boxes.forEach(box => {
+                let visualHtml = '', statusText = '', extraClass = '';
+                if (box.mode === 'monthly') {
+                    const target = box.target || 1; let months = box.current / target; if(box.current < 0) months = 0; if(box.current < 0) extraClass = 'negative';
+                    let barsHtml = ''; for(let i=0; i<6; i++) { let fill = (months > i) ? ((months >= i+1) ? 100 : (months - i) * 100) : 0; let colorClass = (i===0) ? 'fill-lvl-1' : (months >= 6 ? 'fill-lvl-max' : 'fill-lvl-future'); barsHtml += `<div class="shield-segment"><div class="shield-fill ${colorClass}" style="width:${fill}%"></div></div>`; }
+                    visualHtml = `<div class="shield-track">${barsHtml}</div>`; statusText = box.current < 0 ? '🚨 NEGATIVO' : months.toFixed(1) + ' Meses Cobertos';
+                } else if (box.mode === 'target') {
+                    const target = box.target || 1; const pct = Math.min((box.current / target)*100, 100);
+                    visualHtml = `<div class="progress-track"><div class="progress-bar" style="width:${pct}%"></div><div style="position:absolute; right:5px; top:0; font-size:0.7rem; color:white; line-height:12px;">${pct.toFixed(0)}%</div></div>`; 
+                    statusText = `Objetivo: ${fmt(target)}`;
+                    if(box.subItems && box.subItems.length > 0) { box.subItems.forEach(item => { if(box.current >= item.val) { statusText += `<br><span class="achievement-badge">🏆 ${item.name} Liberado!</span>`; } }); }
+                } else if (box.mode === 'credit') { extraClass = 'credit-mode'; visualHtml = `<div style="height:5px; background:#444; border-radius:2px; margin-top:5px;"></div>`; statusText = `Vence dia ${box.dueDay || '?'}`; }
+                container.innerHTML += `<div class="box-card ${extraClass}" style="border-top: 3px solid ${box.color}"><div style="display:flex; justify-content:space-between;"><span style="font-weight:bold; color:${box.color}">${box.label}</span><span style="font-size:0.7rem; color:#888; text-transform:uppercase; border:1px solid #444; padding:2px 4px; border-radius:3px;">${box.mode}</span></div><div class="box-val" style="color:${box.mode==='credit'?'#ffcc00':'white'}">${fmt(box.current)}</div>${visualHtml}<div style="font-size:0.75rem; color:#666; margin-top:5px;">${statusText}</div></div>`;
+            });
+            updateBadge();
+        }
+
+        function updateBadge() { const b = document.getElementById('bill-badge'); b.innerText = appData.bills.length; b.classList.toggle('hidden', appData.bills.length === 0); }
         function recalcDist() { let tot=0; document.querySelectorAll('.dist-inp').forEach(i=>tot+=parseFloat(i.value||0)); document.getElementById('dist-total-alloc').innerText=fmt(tot); document.getElementById('dist-remain').innerText=fmt(appData.masterBalance-tot); }
         function commitDistribution() { let tot=0; document.querySelectorAll('.dist-inp').forEach(i=>tot+=parseFloat(i.value||0)); if(tot>appData.masterBalance+0.1) return alert('Saldo insuficiente!'); document.querySelectorAll('.dist-inp').forEach(i=>{ let v=parseFloat(i.value||0); if(v>0) { let b=appData.boxes.find(box=>box.id===i.dataset.id); b.current+=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'dist',amount:v,desc:'IA Dist',box:b.id}); } }); appData.masterBalance-=tot; closeModals(); renderDashboard(); forceSaveGitHub(); }
+        
         function openConfigModal() { const l=document.getElementById('config-list'); l.innerHTML=''; appData.boxes.forEach((b, i) => { l.innerHTML += `<div style="background:#222; padding:10px; border-left:4px solid ${b.color}; border-radius:5px;"><div style="display:flex; justify-content:space-between; align-items:center;"><div><strong style="color:white">${b.label}</strong><div style="font-size:0.7rem; color:#aaa">${b.mode}</div></div><button class="btn-edit" onclick="editBoxDetails(${i})">📝 Composição</button></div><div style="margin-top:5px;"><label style="font-size:0.7rem; color:#888;">Saldo:</label><input type="number" value="${b.current.toFixed(2)}" onchange="updateBalance(${i}, this.value)" class="form-input" style="padding:5px; margin:0; width:100px; text-align:right"></div></div>`; }); document.getElementById('modal-config').classList.add('active'); }
         function closeConfigModal() { document.getElementById('modal-config').classList.remove('active'); sanitizeBills(); autoGenerateBills(); renderDashboard(); forceSaveGitHub(); }
         function editBoxDetails(idx) { currentBoxIdx = idx; document.getElementById('modal-config').classList.remove('active'); document.getElementById('modal-detail').classList.add('active'); const box = appData.boxes[idx]; document.getElementById('detail-title').innerText = box.label; document.getElementById('box-mode-select').value = box.mode; document.getElementById('box-due-day').value = box.dueDay || ''; updateBoxModeDesc(box.mode); renderSubItems(); document.getElementById('new-item-freq').onchange = function() { document.getElementById('custom-freq-div').classList.toggle('hidden', this.value !== 'custom'); } }
