@@ -209,18 +209,17 @@
       "amount": 0,
       "desc": "Baixa Manual: cleonice",
       "box": "fixos"
+    },
+    {
+      "id": 1767553985549,
+      "date": "2026-01-04T19:13:05.549Z",
+      "type": "deleted-auto",
+      "amount": 0,
+      "desc": "Baixa Manual: internet",
+      "box": "fixos"
     }
   ],
   "bills": [
-    {
-      "id": 1767553976940.0903,
-      "autoId": "auto_fixos_internet_2026-0",
-      "desc": "internet",
-      "val": 280,
-      "date": "2026-01-05",
-      "boxId": "fixos",
-      "isAuto": true
-    },
     {
       "id": 1767553976940.3237,
       "autoId": "auto_fixos_aluguelizabel_2026-0",
