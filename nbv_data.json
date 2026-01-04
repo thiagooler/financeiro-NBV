@@ -213,15 +213,6 @@
       "isAuto": true
     },
     {
-      "id": 1767482479534.0356,
-      "autoId": "auto_fixos_ACEB_2026-0",
-      "desc": "ACEB",
-      "val": 30,
-      "date": "2026-01-20",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
       "id": 1767551210034.6028,
       "autoId": "auto_fixos_soila_2026-0",
       "desc": "soila",
