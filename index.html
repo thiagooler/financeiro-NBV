@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBV 17.8 - Bunker Edition</title>
+    <title>NBV 17.11 - Warrior Live</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -177,8 +177,8 @@
     <div id="status-indicator" class="status-pill hidden"></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.8</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">Bunker Edition (Anti-Censura)</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.11</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Warrior Live Edition</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
@@ -593,7 +593,7 @@
 
         // --- GEMINI AI SQUADRON ENGINE ---
         
-        // SQUADRON LIST
+        // SQUADRON LIST (FALLBACK)
         const AI_MODELS = [
             'gemini-1.5-flash', 
             'gemini-1.5-pro',
@@ -610,6 +610,7 @@
             btn.innerText = "Testando...";
             
             try {
+                // Tenta com o Flash primeiro
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cfg.aiKey}`;
                 const response = await fetch(url, {
                     method: 'POST',
@@ -621,10 +622,10 @@
                     alert("✅ Conexão IA Bem Sucedida!");
                 } else {
                     const err = await response.json();
-                    alert(`❌ Falha: ${err.error?.message || response.status}`);
+                    alert(`❌ Falha na API: ${err.error?.message || response.status}`);
                 }
             } catch(e) {
-                alert(`❌ Erro de Rede: ${e.message}`);
+                alert(`❌ Erro de Rede: ${e.message}\nVerifique se está rodando em HTTPS (GitHub Pages).`);
             }
             btn.innerText = originalText;
         }
@@ -666,7 +667,7 @@
 
         async function tryFetchAI(prompt, apiKey, modelIndex) {
             if (modelIndex >= AI_MODELS.length) {
-                alert("Todos os modelos falharam. Motivo provável: Bloqueio de CORS ou Chave Inválida. Usando regras manuais.");
+                alert("Todos os modelos falharam. Usando regras manuais.");
                 runRuleBasedDistribution();
                 return;
             }
