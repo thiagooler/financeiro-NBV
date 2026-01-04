@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBV 17.14 - Conflict Resolver</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <title>NBV 17.15 - Ghostbuster</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -61,7 +65,6 @@
         .btn-ai { background: linear-gradient(135deg, #00f2ff 0%, #0078ff 100%); color: #000; box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); }
         .btn-neutral { background: #333; border: 1px solid #555; }
         .btn-github { background: #24292e; border: 1px solid #555; }
-        .btn-debug { background: #ff9900; color: #000; font-weight: bold; }
         
         .btn-icon { background: #333; border: 1px solid #555; color: white; width: 35px; height: 35px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: #555; }
@@ -98,13 +101,11 @@
         .progress-track { height: 12px; background: #111; border-radius: 6px; overflow: hidden; position: relative; border: 1px solid #333; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); width: 0%; transition: width 1s; }
 
-        /* PRIORITY BADGES */
         .p-badge { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-left: 5px; }
         .p-1 { background: var(--danger); color: white; border: 1px solid #ff5555; }
         .p-2 { background: var(--gold); color: black; border: 1px solid #ffee00; }
         .p-3 { background: var(--primary); color: black; border: 1px solid #00ccff; }
 
-        /* ACHIEVEMENT BADGE */
         .achievement-badge {
             background: rgba(255, 215, 0, 0.1); border: 1px solid var(--gold); color: var(--gold);
             padding: 5px; font-size: 0.7rem; border-radius: 4px; margin-top: 5px; display: inline-block;
@@ -119,6 +120,7 @@
             display: flex; flex-direction: column; gap: 10px;
         }
         .bill-card.auto-gen { border-left-color: var(--primary); background: rgba(0, 242, 255, 0.05); }
+        .bill-card.deleting { opacity: 0.5; pointer-events: none; border-left-color: #555; }
         
         .bill-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .bill-actions { display: flex; gap: 10px; margin-top: 5px; }
@@ -173,6 +175,9 @@
         .status-saved { background: var(--success); color: #000; }
         .status-error { background: var(--danger); color: white; }
 
+        /* LOADING OVERLAY (GLOBAL LOCK) */
+        #global-loading { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:none; justify-content:center; align-items:center; flex-direction:column; }
+
         #modal-github { z-index: 1100; }
         
         .step-box { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
@@ -181,14 +186,15 @@
 <body>
 
     <div id="status-indicator" class="status-pill hidden"></div>
+    <div id="global-loading"><div class="spinner"></div><h3 style="margin-top:10px;">Salvando no GitHub...</h3><small style="color:#aaa">Não feche ou atualize.</small></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.14</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">Conflict Resolver Edition</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.15</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Ghostbuster Edition (No Cache)</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
-                🔄 Conectar GitHub
+                🔄 Conectar GitHub (API)
             </button>
             <button class="btn-action btn-neutral" onclick="openGithubConfig()">
                 ⚙️ Configurar
@@ -201,7 +207,7 @@
         </div>
         <div id="welcome-loading" class="hidden">
             <div class="spinner"></div>
-            <p style="margin-top:10px; color:#666;">Sincronizando...</p>
+            <p style="margin-top:10px; color:#666;">Conectando ao Cofre...</p>
         </div>
     </div>
 
@@ -510,6 +516,7 @@
             document.getElementById('gh-repo').value = cfg.repo || '';
             document.getElementById('gh-file').value = cfg.file || 'nbv_data.json';
             
+            // CORRECTION: Close config modal to prevent overlap
             document.getElementById('modal-config').classList.remove('active');
             document.getElementById('modal-github').classList.add('active');
         }
@@ -522,9 +529,31 @@
             if(type === 'saved') setTimeout(() => el.classList.add('hidden'), 3000);
         }
 
+        function toggleGlobalLoading(show) {
+            const el = document.getElementById('global-loading');
+            el.style.display = show ? 'flex' : 'none';
+        }
+
         // --- GITHUB API ENGINE ---
         function utf8_to_b64(str) { return window.btoa(unescape(encodeURIComponent(str))); }
         function b64_to_utf8(str) { return decodeURIComponent(escape(window.atob(str))); }
+
+        async function getLatestSha() {
+            const cfg = getGhConfig();
+            const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}?t=${Date.now()}`; // CACHE BUST
+            const res = await fetch(url, {
+                headers: { 
+                    'Authorization': `token ${cfg.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'If-None-Match': '' // FORCE NO CACHE
+                }
+            });
+            if(res.ok) {
+                const data = await res.json();
+                return data.sha;
+            }
+            return null;
+        }
 
         async function attemptGithubLoad() {
             const cfg = getGhConfig();
@@ -536,13 +565,15 @@
             document.getElementById('welcome-btns').classList.add('hidden');
             document.getElementById('welcome-loading').classList.remove('hidden');
 
-            const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}`;
+            // CACHE BUSTER ADDED
+            const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}?t=${Date.now()}`;
             
             try {
                 const res = await fetch(url, {
                     headers: { 
                         'Authorization': `token ${cfg.token}`,
-                        'Accept': 'application/vnd.github.v3+json'
+                        'Accept': 'application/vnd.github.v3+json',
+                        'If-None-Match': '' // FORCE FRESH
                     }
                 });
 
@@ -574,31 +605,32 @@
             }
         }
 
-        // --- FORCE SAVE GITHUB (CONFLICT RESOLVER) ---
+        // --- FORCE SAVE GITHUB (CONFLICT RESOLVER & LOCK) ---
         async function forceSaveGitHub() {
             const cfg = getGhConfig();
-            if(!cfg.token) return; // Local mode only
+            if(!cfg.token) return; 
             
-            // LOCK: Prevent double clicks
-            if (isSaving) {
-                console.log("Save in progress... Action queued or ignored.");
-                return; 
-            }
+            if (isSaving) return; 
             
             isSaving = true;
+            toggleGlobalLoading(true); // LOCK SCREEN
             showStatus("Sincronizando...", "sync");
             
-            const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}`;
-            const contentJson = JSON.stringify(appData, null, 2);
-            const contentBase64 = utf8_to_b64(contentJson);
-
-            const body = {
-                message: "Update NBV Data " + new Date().toISOString(),
-                content: contentBase64,
-                sha: currentSha
-            };
-
             try {
+                // 1. GET FRESH SHA FIRST (Crucial for "Zombie" Fix)
+                const freshSha = await getLatestSha();
+                if(freshSha) currentSha = freshSha;
+
+                const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}`;
+                const contentJson = JSON.stringify(appData, null, 2);
+                const contentBase64 = utf8_to_b64(contentJson);
+
+                const body = {
+                    message: "Update NBV Data " + new Date().toISOString(),
+                    content: contentBase64,
+                    sha: currentSha
+                };
+
                 const res = await fetch(url, {
                     method: 'PUT',
                     headers: { 
@@ -608,20 +640,32 @@
                     body: JSON.stringify(body)
                 });
                 
-                if(!res.ok) throw new Error("Erro Save");
+                if(!res.ok) throw new Error("Erro Save: " + res.status);
                 
                 const data = await res.json();
-                // CRITICAL: Update SHA immediately so next save works
                 currentSha = data.content.sha; 
                 
                 showStatus("Salvo na Nuvem", "saved");
             } catch(e) {
                 console.error(e);
                 showStatus("Erro ao Salvar", "error");
-                // Optional: Re-fetch data if save failed due to conflict
-                // attemptGithubLoad(); 
+                alert("Erro ao salvar! Tente novamente em alguns segundos.");
             } finally {
-                isSaving = false; // UNLOCK
+                isSaving = false;
+                toggleGlobalLoading(false); // UNLOCK
+            }
+        }
+
+        // --- DELETION LOGIC (SAFE) ---
+        async function safeDeleteBill(id) {
+            if(confirm("Tem certeza que deseja excluir esta conta pendente?")) {
+                const idx = appData.bills.findIndex(b => b.id === id);
+                if(idx > -1) {
+                    appData.bills.splice(idx, 1);
+                    renderBills(); // Optimistic update
+                    await forceSaveGitHub(); // Wait for server confirmation
+                    renderDashboard();
+                }
             }
         }
 
@@ -630,7 +674,6 @@
             const avail = appData.masterBalance; 
             if(avail <= 0) return alert('Sem saldo para distribuir.');
 
-            // Get Last 30 Days History
             const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             const recentTrans = appData.transactions.filter(t => new Date(t.date) >= thirtyDaysAgo && t.type === 'out');
             
@@ -641,7 +684,6 @@
                 expenseSummary[cat] = (expenseSummary[cat] || 0) + t.amount;
             });
 
-            // Prepare Context
             const context = {
                 currentDate: new Date().toISOString().split('T')[0],
                 availableFunds: avail,
@@ -843,7 +885,7 @@ SAÍDA OBRIGATÓRIA (JSON CRU):
             document.getElementById('modal-bill').classList.add('active'); 
         }
 
-        function saveBill() { 
+        async function saveBill() { 
             const id = document.getElementById('b-id').value;
             const d=document.getElementById('b-desc').value; 
             const v=parseFloat(document.getElementById('b-val').value); 
@@ -852,7 +894,8 @@ SAÍDA OBRIGATÓRIA (JSON CRU):
             
             if(d&&v) { 
                 if (id) {
-                    const idx = appData.bills.findIndex(b => b.id == id);
+                    // Update existing
+                    const idx = appData.bills.findIndex(b => b.id == id); // loose eq for string/num
                     if(idx > -1) {
                         appData.bills[idx].desc = d;
                         appData.bills[idx].val = v;
@@ -860,22 +903,17 @@ SAÍDA OBRIGATÓRIA (JSON CRU):
                         appData.bills[idx].boxId = bid;
                     }
                 } else {
+                    // Create new
                     appData.bills.push({id:Date.now(), desc:d, val:v, date:dt, boxId:bid, isAuto:false}); 
                 }
-                closeModals(); renderBills(); renderDashboard(); forceSaveGitHub();
+                closeModals(); renderBills(); await forceSaveGitHub(); renderDashboard(); 
             } 
         }
 
+        // Updated Delete Function (Safe)
         function deleteBill(id) {
-            if(confirm("Tem certeza que deseja excluir esta conta pendente?")) {
-                const idx = appData.bills.findIndex(b => b.id === id);
-                if(idx > -1) {
-                    appData.bills.splice(idx, 1);
-                    renderBills();
-                    renderDashboard();
-                    forceSaveGitHub();
-                }
-            }
+            // Using safe delete wrapper
+            safeDeleteBill(id);
         }
 
         function renderBills() { 
@@ -939,7 +977,7 @@ SAÍDA OBRIGATÓRIA (JSON CRU):
             }
         }
 
-        function commitTrans() { 
+        async function commitTrans() { 
             const a=parseFloat(document.getElementById('t-amt').value); 
             const d=document.getElementById('t-desc').value; 
             if(!a) return; 
@@ -974,7 +1012,7 @@ SAÍDA OBRIGATÓRIA (JSON CRU):
                     refBox: refBoxId 
                 }); 
             } 
-            closeModals(); renderDashboard(); forceSaveGitHub();
+            closeModals(); renderDashboard(); await forceSaveGitHub();
         }
 
         // --- PAYMENT ---
@@ -997,7 +1035,7 @@ SAÍDA OBRIGATÓRIA (JSON CRU):
 
         function closePayModal() { document.getElementById('modal-pay-confirm').classList.remove('active'); }
 
-        function commitPayment() {
+        async function commitPayment() {
             const billId = parseFloat(document.getElementById('pay-id-target').value);
             const realVal = parseFloat(document.getElementById('pay-val-real').value);
             const method = document.getElementById('pay-method').value;
@@ -1026,7 +1064,7 @@ SAÍDA OBRIGATÓRIA (JSON CRU):
                     appData.bills.splice(idx, 1);
                 } else return alert(`Saldo insuficiente na caixa ${originBox.label}.`);
             }
-            closePayModal(); renderBills(); renderDashboard(); forceSaveGitHub();
+            closePayModal(); renderBills(); renderDashboard(); await forceSaveGitHub();
         }
 
         // --- INVOICE PAY ---
@@ -1043,12 +1081,12 @@ SAÍDA OBRIGATÓRIA (JSON CRU):
             document.getElementById('modal-invoice').classList.add('active');
         }
         function calcInvTotal() { let tot = 0; document.querySelectorAll('.inv-source-inp').forEach(i => tot += parseFloat(i.value || 0)); document.getElementById('inv-pay-total').innerText = fmt(tot); }
-        function commitInvoicePay() {
+        async function commitInvoicePay() {
             let totalPaid = 0; const creditBox = appData.boxes.find(b => b.mode === 'credit'); const inputs = document.querySelectorAll('.inv-source-inp');
             let valid = true; inputs.forEach(inp => { const val = parseFloat(inp.value || 0); if(val > 0) { if(inp.dataset.id === 'master') { if(appData.masterBalance < val) valid = false; } else { const b = appData.boxes.find(box => box.id === inp.dataset.id); if(b.current < val) valid = false; } } });
             if(!valid) return alert("Saldo insuficiente.");
             inputs.forEach(inp => { const val = parseFloat(inp.value || 0); if(val > 0) { if(inp.dataset.id === 'master') { appData.masterBalance -= val; } else { const b = appData.boxes.find(box => box.id === inp.dataset.id); b.current -= val; } totalPaid += val; appData.transactions.push({id: Date.now(), date: new Date().toISOString(), type: 'out', amount: val, desc: 'PGTO FATURA PARCIAL', box: inp.dataset.id}); } });
-            if(totalPaid > 0) { creditBox.current -= totalPaid; closeModals(); renderDashboard(); forceSaveGitHub(); } else { alert("Valor zerado."); }
+            if(totalPaid > 0) { creditBox.current -= totalPaid; closeModals(); renderDashboard(); await forceSaveGitHub(); } else { alert("Valor zerado."); }
         }
 
         // --- RENDER & CONFIG ---
@@ -1087,7 +1125,7 @@ SAÍDA OBRIGATÓRIA (JSON CRU):
         function delSubItem(i) { appData.boxes[currentBoxIdx].subItems.splice(i, 1); renderSubItems(); }
         function closeDetailModal() { document.getElementById('modal-detail').classList.remove('active'); openConfigModal(); renderDashboard(); }
         function addNewBox() { const n=prompt("Nome:"); if(n) { appData.boxes.push({id:'box_'+Date.now(),label:n,color:'#fff',priority:2,mode:'monthly',subItems:[],target:0,current:0}); openConfigModal(); } }
-        function updateBalance(i,v) { let val=parseFloat(v); let d=val-appData.boxes[i].current; if(d!==0) { appData.boxes[i].current=val; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:d>0?'in':'out',amount:Math.abs(d),desc:'Ajuste Manual',box:appData.boxes[i].id}); renderDashboard(); } }
+        async function updateBalance(i,v) { let val=parseFloat(v); let d=val-appData.boxes[i].current; if(d!==0) { appData.boxes[i].current=val; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:d>0?'in':'out',amount:Math.abs(d),desc:'Ajuste Manual',box:appData.boxes[i].id}); renderDashboard(); await forceSaveGitHub(); } }
         function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); }
         function exportCSV() { const s=document.getElementById('rep-start').value; const e=document.getElementById('rep-end').value; const start=new Date(s); const end=new Date(e); end.setHours(23,59,59,999); const txs=appData.transactions.filter(t=>{ const d=new Date(t.date); return d>=start && d<=end; }).sort((a,b)=>new Date(b.date)-new Date(a.date)); let c="\uFEFFRELATORIO NBV\nPeriodo:"+s+" a "+e+"\n\nSALDOS\nCaixa,Modo,Saldo,Meta\n"; appData.boxes.forEach(b=>c+=`${b.label},${b.mode},${b.current.toFixed(2)},${b.target}\n`); c+="\nMOVIMENTACOES\nData,Desc,Caixa,Tipo,Valor,Ref\n"; txs.forEach(t=>{ const bn=appData.boxes.find(b=>b.id===t.box)?.label||(t.box==='master'?'Mestra':'-'); const rn=appData.boxes.find(b=>b.id===t.refBox)?.label||''; c+=`${new Date(t.date).toLocaleDateString()},${t.desc.replace(/,/g,' ')},${bn},${t.type},${t.amount.toFixed(2)},${rn}\n`; }); c+="\nPENDENCIAS\nVencimento,Desc,Valor,Caixa\n"; appData.bills.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(b=>{ const bn=appData.boxes.find(x=>x.id===b.boxId)?.label||'?'; c+=`${new Date(b.date).toLocaleDateString()},${b.desc.replace(/,/g,' ')},${b.val.toFixed(2)},${bn}\n`; }); const b=new Blob([c],{type:'text/csv;charset=utf-8;'}); const u=URL.createObjectURL(b); const l=document.createElement("a"); l.href=u; l.download=`NBV_Export_${s}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l); }
         function fmt(v) { return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
