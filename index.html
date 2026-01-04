@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBV 17.4 - GitHub Cloud</title>
+    <title>NBV 17.5 - Warrior Edition</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -165,6 +165,9 @@
         .status-sync { background: var(--primary); color: #000; }
         .status-saved { background: var(--success); color: #000; }
         .status-error { background: var(--danger); color: white; }
+
+        /* FIX PRIORITY - GARANTE QUE A TELA DO GITHUB APAREÇA */
+        #modal-github { z-index: 1100; }
     </style>
 </head>
 <body>
@@ -172,7 +175,7 @@
     <div id="status-indicator" class="status-pill hidden"></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.4</h1>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.5</h1>
         <p style="color: var(--text-dim); margin-bottom: 40px;">GitHub Cloud Sync - Warrior Edition</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
@@ -474,6 +477,9 @@
             document.getElementById('gh-user').value = cfg.user || '';
             document.getElementById('gh-repo').value = cfg.repo || '';
             document.getElementById('gh-file').value = cfg.file || 'nbv_data.json';
+            
+            // CORRECTION: Close config modal to prevent overlap
+            document.getElementById('modal-config').classList.remove('active');
             document.getElementById('modal-github').classList.add('active');
         }
 
