@@ -213,15 +213,6 @@
       "isAuto": true
     },
     {
-      "id": 1767552295030.8499,
-      "autoId": "auto_fixos_hb20_2026-0",
-      "desc": "hb20",
-      "val": 1400,
-      "date": "2026-01-15",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
       "id": 1767551910881.178,
       "autoId": "auto_fixos_ACEB_2026-0",
       "desc": "ACEB",
