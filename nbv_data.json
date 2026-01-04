@@ -204,15 +204,6 @@
   "transactions": [],
   "bills": [
     {
-      "id": 1767551910881.4177,
-      "autoId": "auto_fixos_internet_2026-0",
-      "desc": "internet",
-      "val": 280,
-      "date": "2026-01-05",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
       "id": 1767551910881.3416,
       "autoId": "auto_fixos_aluguelizabel_2026-0",
       "desc": "aluguel izabel",
