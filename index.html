@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBV 17.6.2 - Debug Edition</title>
+    <title>NBV 17.7 - AI Squadron</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -177,8 +177,8 @@
     <div id="status-indicator" class="status-pill hidden"></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.6.2</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">AI Warrior Edition - Debug Fix</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.7</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">AI Squadron - Auto Fallback</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
@@ -333,7 +333,7 @@
             <h2 class="text-green">🤖 IA Warrior</h2>
             <div id="ai-loading" class="hidden" style="text-align:center; padding:20px;">
                 <div class="spinner" style="margin:0 auto;"></div>
-                <p style="color:#aaa; margin-top:10px;">Analisando estratégia financeira...</p>
+                <p id="ai-loading-text" style="color:#aaa; margin-top:10px;">Contactando Estrategista...</p>
             </div>
             <div id="ai-result-area">
                 <div id="ai-insight" style="background:#222; padding:10px; border-left:4px solid var(--primary); margin-bottom:10px; font-size:0.9rem; color:#fff; font-style:italic;"></div>
@@ -590,19 +590,24 @@
             }
         }
 
-        // --- GEMINI AI ENGINE ---
+        // --- GEMINI AI SQUADRON ENGINE ---
+        
+        // LISTA DE MODELOS (FALLBACK STRATEGY)
+        const AI_MODELS = [
+            'gemini-1.5-flash', 
+            'gemini-1.5-pro',
+            'gemini-1.0-pro', 
+            'gemini-pro'
+        ];
+
         async function runAIDistribution() {
             const avail = appData.masterBalance; 
             if(avail <= 0) return alert('Sem saldo para distribuir.');
 
             const cfg = getConfigs();
             if(!cfg.aiKey) {
-                // FALLBACK TO RULES BASED IF NO KEY
-                if(confirm("Chave IA não encontrada. Usar distribuição básica (regras)?")) {
-                    runRuleBasedDistribution();
-                } else {
-                    openGithubConfig();
-                }
+                if(confirm("Chave IA não encontrada. Usar regras básicas?")) runRuleBasedDistribution();
+                else openGithubConfig();
                 return;
             }
 
@@ -611,108 +616,91 @@
             document.getElementById('ai-loading').classList.remove('hidden');
             document.getElementById('ai-result-area').classList.add('hidden');
 
-            // LIGHTER PAYLOAD FOR AI (Avoid Token Limits)
             const summaryData = {
                 available: avail,
                 balances: appData.boxes.map(b => ({name: b.label, current: b.current, target: b.target, mode: b.mode})),
                 pendingBills: appData.bills.map(b => ({desc: b.desc, val: b.val, date: b.date})),
             };
 
-            // PREPARE PROMPT
             const prompt = `
-            Você é um estrategista financeiro "Warrior". O usuário tem TDAH e precisa de clareza absoluta.
-            Saldo Mestra Disponível: R$ ${avail}.
-            
-            Analise estes dados simplificados (JSON):
-            ${JSON.stringify(summaryData)}
-            
-            Regras:
-            1. Pague contas vencendo em < 15 dias.
-            2. Cubra "Fixos" negativos.
-            3. Aloque em Reservas.
-            4. Lazer só se sobrar.
-            
-            Responda APENAS neste JSON válido:
-            {
-                "insight": "Frase curta e direta de conselho.",
-                "plan": [
-                    { "id": "id_da_caixa_exata_do_banco_original", "name": "Nome", "val": 0.00, "reason": "Motivo" }
-                ]
-            }
-            Importante: Use os IDs originais ou nomes exatos das caixas para eu mapear de volta.
+            Você é um estrategista financeiro "Warrior".
+            Saldo Mestra: R$ ${avail}.
+            Dados (JSON): ${JSON.stringify(summaryData)}
+            Regras: Pague contas < 15 dias > Cubra Negativos > Reservas > Lazer.
+            Responda APENAS JSON válido:
+            { "insight": "Frase curta", "plan": [{ "name": "NomeCaixaExato", "val": 0.00, "reason": "Motivo" }] }
             `;
 
+            // Start Squadron Attack (Try 0)
+            tryFetchAI(prompt, cfg.aiKey, 0);
+        }
+
+        async function tryFetchAI(prompt, apiKey, modelIndex) {
+            if (modelIndex >= AI_MODELS.length) {
+                alert("Todos os modelos de IA falharam. Usando regras manuais.");
+                runRuleBasedDistribution();
+                return;
+            }
+
+            const model = AI_MODELS[modelIndex];
+            document.getElementById('ai-loading-text').innerText = `Consultando Agente: ${model}...`;
+
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cfg.aiKey}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
 
-                if(!response.ok) {
-                    throw new Error(`Erro API Google: ${response.status} ${response.statusText}`);
-                }
+                if(!response.ok) throw new Error(`HTTP ${response.status}`);
 
                 const data = await response.json();
-                
-                if (!data.candidates || !data.candidates[0].content) {
-                    throw new Error("Resposta vazia da IA");
-                }
+                if (!data.candidates || !data.candidates[0].content) throw new Error("Vazio");
 
                 const rawText = data.candidates[0].content.parts[0].text;
-                
-                // ROBUST JSON CLEANER
                 let jsonText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
                 const firstBrace = jsonText.indexOf('{');
                 const lastBrace = jsonText.lastIndexOf('}');
-                
-                if (firstBrace !== -1 && lastBrace !== -1) {
-                    jsonText = jsonText.substring(firstBrace, lastBrace + 1);
-                }
+                if (firstBrace !== -1 && lastBrace !== -1) jsonText = jsonText.substring(firstBrace, lastBrace + 1);
 
                 const result = JSON.parse(jsonText);
-
-                // MAP NAMES BACK TO IDS IF ID IS MISSING (Fallback)
-                let plan = result.plan.map(p => {
-                    let box = appData.boxes.find(b => b.id === p.id || b.label.toLowerCase() === p.name.toLowerCase());
-                    return {
-                        id: box ? box.id : 'gerais', // Fallback to 'gerais'
-                        name: box ? box.label : p.name,
-                        val: p.val,
-                        reason: p.reason
-                    };
-                });
-
-                // RENDER RESULT
-                document.getElementById('ai-loading').classList.add('hidden');
-                document.getElementById('ai-result-area').classList.remove('hidden');
-                document.getElementById('ai-insight').innerText = "💡 " + result.insight;
                 
-                const logDiv = document.getElementById('ai-reasoning-log');
-                logDiv.innerHTML = plan.map(p => `<div>➤ ${p.name}: ${fmt(p.val)} <span style="color:#666">(${p.reason})</span></div>`).join('');
-                
-                renderDistInputs(plan);
+                // Success! Render
+                processAIResult(result);
 
             } catch(e) {
-                console.error("Erro AI:", e);
-                alert(`Erro IA: ${e.message}\nVerifique sua chave ou internet. Usando modo offline.`);
-                runRuleBasedDistribution();
+                console.warn(`Falha no modelo ${model}:`, e);
+                // Recursive Retry (Next Soldier)
+                tryFetchAI(prompt, apiKey, modelIndex + 1);
             }
+        }
+
+        function processAIResult(result) {
+            document.getElementById('ai-loading').classList.add('hidden');
+            document.getElementById('ai-result-area').classList.remove('hidden');
+            document.getElementById('ai-insight').innerText = "💡 " + result.insight;
+            
+            let plan = result.plan.map(p => {
+                let box = appData.boxes.find(b => b.label.toLowerCase() === p.name.toLowerCase() || b.id === p.id);
+                return {
+                    id: box ? box.id : 'gerais',
+                    name: box ? box.label : p.name,
+                    val: p.val,
+                    reason: p.reason
+                };
+            });
+
+            const logDiv = document.getElementById('ai-reasoning-log');
+            logDiv.innerHTML = plan.map(p => `<div>➤ ${p.name}: ${fmt(p.val)} <span style="color:#666">(${p.reason})</span></div>`).join('');
+            
+            renderDistInputs(plan);
         }
 
         function runRuleBasedDistribution() {
             const avail = appData.masterBalance;
             let plan = []; let rem = avail;
-            
-            appData.boxes.forEach(b => { 
-                if(b.mode!=='credit' && b.current < 0 && rem > 0) {
-                    let pay = Math.min(rem, Math.abs(b.current));
-                    plan.push({id:b.id, name:b.label, val:pay, reason:'Resgate'});
-                    rem-=pay;
-                }
-            });
-            
+            appData.boxes.forEach(b => { if(b.mode!=='credit' && b.current < 0 && rem > 0) { let pay = Math.min(rem, Math.abs(b.current)); plan.push({id:b.id, name:b.label, val:pay, reason:'Resgate'}); rem-=pay; } });
              if(rem > 0) { appData.boxes.filter(b=>b.mode!=='credit').forEach(b => plan.push({id:b.id, name:b.label, val:rem/3, reason:'Reserva'})); }
              
              document.getElementById('ai-insight').innerText = "Modo Regras (Sem IA).";
