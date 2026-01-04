@@ -225,6 +225,14 @@
       "amount": 0,
       "desc": "Baixa Manual: aluguel izabel",
       "box": "fixos"
+    },
+    {
+      "id": 1767553992364,
+      "date": "2026-01-04T19:13:12.364Z",
+      "type": "deleted-auto",
+      "amount": 0,
+      "desc": "Baixa Manual: hb20",
+      "box": "fixos"
     }
   ],
   "bills": [
@@ -234,15 +242,6 @@
       "desc": "agua",
       "val": 436.4,
       "date": "2026-01-12",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
-      "id": 1767553976940.4436,
-      "autoId": "auto_fixos_hb20_2026-0",
-      "desc": "hb20",
-      "val": 1400,
-      "date": "2026-01-15",
       "boxId": "fixos",
       "isAuto": true
     },
