@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBV 17.13 - System Check</title>
+    <title>NBV 17.13 - Strategy Commander</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -61,7 +61,6 @@
         .btn-ai { background: linear-gradient(135deg, #00f2ff 0%, #0078ff 100%); color: #000; box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); }
         .btn-neutral { background: #333; border: 1px solid #555; }
         .btn-github { background: #24292e; border: 1px solid #555; }
-        .btn-debug { background: #ff9900; color: #000; font-weight: bold; }
         
         .btn-icon { background: #333; border: 1px solid #555; color: white; width: 35px; height: 35px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: #555; }
@@ -97,6 +96,12 @@
         
         .progress-track { height: 12px; background: #111; border-radius: 6px; overflow: hidden; position: relative; border: 1px solid #333; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); width: 0%; transition: width 1s; }
+
+        /* PRIORITY BADGES */
+        .p-badge { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-left: 5px; }
+        .p-1 { background: var(--danger); color: white; border: 1px solid #ff5555; }
+        .p-2 { background: var(--gold); color: black; border: 1px solid #ffee00; }
+        .p-3 { background: var(--primary); color: black; border: 1px solid #00ccff; }
 
         /* ACHIEVEMENT BADGE */
         .achievement-badge {
@@ -178,7 +183,7 @@
 
     <div id="welcome-screen">
         <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.13</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">System Check Edition</p>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Strategy Commander</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
@@ -266,18 +271,18 @@
 
     <div id="modal-manual-ai" class="modal-overlay">
         <div class="modal-content">
-            <h2 class="text-primary">⚡ Distribuição Assistida</h2>
+            <h2 class="text-primary">⚡ Estrategista Financeiro</h2>
             
             <div class="step-box">
-                <strong style="color:var(--gold)">Passo 1:</strong> Copie o comando abaixo e envie no chat da IA.
+                <strong style="color:var(--gold)">Passo 1:</strong> Copie o relatório de inteligência abaixo e envie para o General (IA).
                 <textarea id="ai-prompt-output" class="form-input" style="height:100px; margin-top:5px; font-size:0.7rem; color:#aaa;" readonly></textarea>
                 <button class="btn-action btn-neutral" style="width:100%" onclick="copyPrompt()">📋 Copiar Comando</button>
             </div>
 
             <div class="step-box" style="border-left-color: var(--success);">
-                <strong style="color:var(--success)">Passo 2:</strong> Cole a resposta da IA aqui.
+                <strong style="color:var(--success)">Passo 2:</strong> Cole a ordem de batalha (JSON) aqui.
                 <textarea id="ai-json-input" class="form-input" style="height:100px; margin-top:5px;" placeholder='Cole o JSON aqui...'></textarea>
-                <button class="btn-action btn-in" style="width:100%" onclick="processManualAI()">🚀 Processar Distribuição</button>
+                <button class="btn-action btn-in" style="width:100%" onclick="processManualAI()">🚀 Executar Estratégia</button>
             </div>
 
             <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button>
@@ -286,7 +291,7 @@
 
     <div id="modal-distribute" class="modal-overlay">
         <div class="modal-content">
-            <h2 class="text-green">Confirmar Distribuição</h2>
+            <h2 class="text-green">Confirmar Estratégia</h2>
             <div id="ai-insight" style="background:#222; padding:10px; border-left:4px solid var(--primary); margin-bottom:10px; font-size:0.9rem; color:#fff; font-style:italic;"></div>
             
             <div id="distribution-list" style="margin: 15px 0;"></div>
@@ -301,7 +306,7 @@
     <div id="modal-github" class="modal-overlay">
         <div class="modal-content">
             <h2 class="text-primary">⚙️ Configuração GitHub</h2>
-            <p style="color:#888; font-size:0.8rem; margin-bottom:15px;">Se os dados não carregam, verifique o Nome do Arquivo.</p>
+            <p style="color:#888; font-size:0.8rem; margin-bottom:15px;">Os dados serão salvos no repositório privado abaixo.</p>
             
             <label style="color:#aaa">Token (PAT - Classic)</label>
             <input type="password" id="gh-token" class="form-input" placeholder="ghp_xxxxxxxxxxxx">
@@ -312,11 +317,8 @@
             <label style="color:#aaa">Nome do Repositório</label>
             <input type="text" id="gh-repo" class="form-input" placeholder="Ex: financeiro-nbv">
             
-            <label style="color:var(--gold)">Nome do Arquivo (Cuidado!)</label>
-            <input type="text" id="gh-file" class="form-input" value="nbv_data.json" placeholder="nbv_data.json">
-            <small style="color:#666; display:block; margin-bottom:10px">Se você subiu o arquivo manualmente, use o nome exato (ex: NBV_AI_Financeiro.json)</small>
-
-            <button class="btn-action btn-debug" style="width:100%; margin-bottom:10px;" onclick="diagnoseConnection()">🕵️ Diagnóstico Completo</button>
+            <label style="color:#aaa">Nome do Arquivo (JSON)</label>
+            <input type="text" id="gh-file" class="form-input" value="nbv_data.json">
 
             <button class="btn-action btn-in" style="width:100%" onclick="saveGithubConfig()">Salvar Credenciais</button>
             <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button>
@@ -402,7 +404,7 @@
                 <h2>Configurar</h2>
                 <button class="btn-action btn-in" style="padding:5px 10px; font-size:0.8rem" onclick="addNewBox()">+ Caixa</button>
             </div>
-            <button class="btn-action btn-github" style="width:100%; margin-top:15px; font-size:0.8rem" onclick="openGithubConfig()">🔧 Configurar GitHub</button>
+            <button class="btn-action btn-github" style="width:100%; margin-top:15px; font-size:0.8rem" onclick="openGithubConfig()">🔧 Alterar GitHub Token</button>
             <div id="config-list" style="display:flex; flex-direction:column; gap:10px; margin-top:15px; max-height:300px; overflow-y:auto"></div>
             <button class="btn-action btn-neutral" style="width:100%; margin-top:10px;" onclick="closeConfigModal()">Fechar</button>
         </div>
@@ -428,7 +430,7 @@
                 <div style="background:#222; padding:10px; border-radius:5px; margin-top:10px;">
                     <h4 style="color:#aaa; margin-bottom:5px;">Adicionar Item</h4>
                     <input type="text" id="new-item-name" class="form-input" placeholder="Nome" style="margin-bottom:5px">
-                    <div class="flex" style="gap:5px">
+                    <div class="flex" style="gap:5px; margin-bottom:5px;">
                         <input type="number" id="new-item-val" class="form-input" placeholder="Valor" style="margin:0; flex:1">
                         <select id="new-item-freq" class="form-select" style="margin:0; flex:1">
                             <option value="monthly">Mensal</option>
@@ -436,10 +438,16 @@
                             <option value="custom">Parcelado</option>
                         </select>
                     </div>
-                    <div style="margin-top:5px; display:flex; gap:5px;">
+                    <div style="display:flex; gap:5px; margin-bottom:5px;">
                         <input type="number" id="new-item-day" class="form-input" placeholder="Dia Venc." style="margin:0; flex:1">
-                        <input type="number" id="new-item-parts" class="form-input hidden" placeholder="Parcelas" style="margin:0; flex:1">
+                        <select id="new-item-priority" class="form-select" style="margin:0; flex:1; border-color:var(--gold);">
+                            <option value="3">Prioridade: Baixa</option>
+                            <option value="2">Prioridade: Média</option>
+                            <option value="1">Prioridade: ALTA</option>
+                        </select>
                     </div>
+                    <input type="number" id="new-item-parts" class="form-input hidden" placeholder="Parcelas" style="margin-top:5px;">
+                    
                     <button class="btn-action btn-in" style="width:100%; margin-top:5px;" onclick="addSubItem()">+ Adicionar</button>
                 </div>
                 <div style="text-align:right; margin-top:15px;">Meta/Aporte: <strong id="detail-total" class="text-green">R$ 0,00</strong></div>
@@ -500,6 +508,7 @@
             document.getElementById('gh-repo').value = cfg.repo || '';
             document.getElementById('gh-file').value = cfg.file || 'nbv_data.json';
             
+            // CORRECTION: Close config modal to prevent overlap
             document.getElementById('modal-config').classList.remove('active');
             document.getElementById('modal-github').classList.add('active');
         }
@@ -512,32 +521,9 @@
             if(type === 'saved') setTimeout(() => el.classList.add('hidden'), 3000);
         }
 
-        // --- GITHUB API ENGINE (DIAGNOSTIC MODE) ---
+        // --- GITHUB API ENGINE ---
         function utf8_to_b64(str) { return window.btoa(unescape(encodeURIComponent(str))); }
         function b64_to_utf8(str) { return decodeURIComponent(escape(window.atob(str))); }
-
-        async function diagnoseConnection() {
-            const cfg = getGhConfig();
-            if(!cfg.token) return alert('Salve o token primeiro.');
-            
-            const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}`;
-            
-            alert(`🔍 TESTE DE CONEXÃO:\n\nVou tentar acessar:\n${url}\n\nSe der erro, verifique se o NOME DO ARQUIVO no GitHub é exatamente '${cfg.file}'.`);
-
-            try {
-                const res = await fetch(url, {
-                    headers: { 'Authorization': `token ${cfg.token}`, 'Accept': 'application/vnd.github.v3+json' }
-                });
-
-                if(res.ok) {
-                    alert("✅ SUCESSO! Conexão estabelecida e arquivo encontrado.");
-                } else {
-                    alert(`❌ ERRO ${res.status}: ${res.statusText}\n\nProvável causa:\n- 404: Arquivo '${cfg.file}' não existe ou Repo '${cfg.repo}' errado.\n- 401: Token inválido.\n- 403: Token sem permissão 'repo'.`);
-                }
-            } catch(e) {
-                alert("❌ ERRO DE REDE: " + e.message);
-            }
-        }
 
         async function attemptGithubLoad() {
             const cfg = getGhConfig();
@@ -560,8 +546,9 @@
                 });
 
                 if(res.status === 404) {
-                    alert(`⚠️ Arquivo '${cfg.file}' não encontrado no GitHub.\nO sistema vai criar um novo quando você salvar.`);
+                    alert("Arquivo não encontrado no Repo. Iniciando novo banco de dados.");
                     initNewSystem();
+                    forceSaveGitHub(); 
                     return;
                 }
 
@@ -580,7 +567,7 @@
                 initNewSystem();
             } catch(e) {
                 console.error(e);
-                alert(`Falha na conexão (${e.message}). Verifique no botão Diagnóstico.`);
+                alert("Falha ao conectar GitHub. Verifique token/internet.");
                 document.getElementById('welcome-loading').classList.add('hidden');
                 document.getElementById('welcome-btns').classList.remove('hidden');
             }
@@ -627,33 +614,54 @@
             const avail = appData.masterBalance; 
             if(avail <= 0) return alert('Sem saldo para distribuir.');
 
-            // Prepare Data Summary
-            const summaryData = {
-                available: avail,
-                balances: appData.boxes.map(b => ({name: b.label, current: b.current, target: b.target, mode: b.mode})),
+            // Get Last 30 Days History
+            const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const recentTrans = appData.transactions.filter(t => new Date(t.date) >= thirtyDaysAgo && t.type === 'out');
+            
+            // Summarize Expenses by Category
+            let expenseSummary = {};
+            recentTrans.forEach(t => {
+                let cat = t.box ? appData.boxes.find(b => b.id === t.box)?.label : 'Geral';
+                if(!cat) cat = 'Outros';
+                expenseSummary[cat] = (expenseSummary[cat] || 0) + t.amount;
+            });
+
+            // Prepare Context
+            const context = {
+                currentDate: new Date().toISOString().split('T')[0],
+                availableFunds: avail,
+                boxes: appData.boxes.map(b => ({
+                    name: b.label, 
+                    current: b.current, 
+                    target: b.target, 
+                    mode: b.mode,
+                    subItems: b.subItems.map(s => ({name: s.name, val: s.val, priority: s.priority || 3})) // Include Priority
+                })),
                 pendingBills: appData.bills.map(b => ({desc: b.desc, val: b.val, date: b.date})),
+                last30DaysExpenses: expenseSummary
             };
 
-            // Construct Prompt
             const promptText = `
-Sou o Thiago (Warrior). Tenho TDAH e preciso de organização.
-Saldo Mestra Disponível: R$ ${avail}.
+Você é o "Strategy Commander" do sistema financeiro NBV.
+O usuário é um Warrior autônomo com TDAH. Precisa de direção clara.
 
-Dados Financeiros (JSON):
-${JSON.stringify(summaryData)}
+DADOS DE BATALHA (JSON):
+${JSON.stringify(context)}
 
-Regras de Ouro:
-1. Prioridade Total: Contas vencendo em < 15 dias e Caixas Negativas.
-2. Segundo: Reservas de Emergência e Impostos.
-3. Último: Lazer (só se sobrar).
+MISSÃO:
+Analise os dados e distribua o saldo disponível (${avail}).
 
-Sua Missão:
-Analise os dados e me dê um plano de distribuição exato.
-Responda APENAS com este formato JSON cru (sem markdown, sem 'json', sem texto antes):
+REGRAS DE ENGAJAMENTO:
+1. **Sobrevivência:** Pague contas vencendo em < 15 dias e cubra caixas negativas.
+2. **Prioridade Tática:** Analise os sub-itens das caixas (especialmente 'Projetos'). Itens com 'priority': 1 (ALTA) devem ser financiados antes de 'priority': 3 (BAIXA), mesmo que sejam mais caros, se forem cruciais (ex: SSD vs Casa).
+3. **Análise de Histórico:** Olhe 'last30DaysExpenses'. Se houver gasto excessivo em 'Lazer' ou 'Gerais', dê um puxão de orelha no 'insight'.
+4. **Reserva:** Sempre tente alocar algo para emergência.
+
+SAÍDA OBRIGATÓRIA (JSON CRU):
 {
-  "insight": "Frase curta e impactante sobre minha situação.",
+  "insight": "Análise curta e direta sobre a situação, mencionando se gastou muito recentemente e qual a prioridade do momento.",
   "plan": [
-    { "name": "Nome Exato da Caixa", "val": 0.00, "reason": "Motivo curto" }
+    { "name": "Nome Exato da Caixa", "val": 0.00, "reason": "Motivo (ex: Prioridade 1 detectada)" }
   ]
 }
 `;
@@ -665,12 +673,12 @@ Responda APENAS com este formato JSON cru (sem markdown, sem 'json', sem texto a
             const txt = document.getElementById('ai-prompt-output');
             txt.select();
             document.execCommand('copy');
-            alert("Comando copiado! Cole no chat da IA.");
+            alert("Relatório copiado! Envie para o General (Chat).");
         }
 
         function processManualAI() {
             const rawJson = document.getElementById('ai-json-input').value;
-            if(!rawJson) return alert("Cole o JSON primeiro!");
+            if(!rawJson) return alert("Cole a resposta da IA primeiro!");
 
             try {
                 let clean = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -692,12 +700,12 @@ Responda APENAS com este formato JSON cru (sem markdown, sem 'json', sem texto a
                 renderDistModal(plan, json.insight);
 
             } catch(e) {
-                alert("Erro ao ler JSON. Certifique-se que a IA enviou apenas o código JSON válido.\n\n" + e.message);
+                alert("Erro ao ler estratégia. Verifique se copiou apenas o JSON.\n\n" + e.message);
             }
         }
 
         function renderDistModal(plan, insight) {
-            document.getElementById('ai-insight').innerText = "💡 " + insight;
+            document.getElementById('ai-insight').innerText = "⚔️ " + insight;
             const list = document.getElementById('distribution-list'); 
             list.innerHTML = ''; 
             
@@ -829,8 +837,7 @@ Responda APENAS com este formato JSON cru (sem markdown, sem 'json', sem texto a
             
             if(d&&v) { 
                 if (id) {
-                    // Update existing
-                    const idx = appData.bills.findIndex(b => b.id == id); // loose eq for string/num
+                    const idx = appData.bills.findIndex(b => b.id == id);
                     if(idx > -1) {
                         appData.bills[idx].desc = d;
                         appData.bills[idx].val = v;
@@ -838,7 +845,6 @@ Responda APENAS com este formato JSON cru (sem markdown, sem 'json', sem texto a
                         appData.bills[idx].boxId = bid;
                     }
                 } else {
-                    // Create new
                     appData.bills.push({id:Date.now(), desc:d, val:v, date:dt, boxId:bid, isAuto:false}); 
                 }
                 closeModals(); renderBills(); renderDashboard(); forceSaveGitHub();
@@ -1061,8 +1067,8 @@ Responda APENAS com este formato JSON cru (sem markdown, sem 'json', sem texto a
         function updateBoxMode(val) { appData.boxes[currentBoxIdx].mode = val; if(val === 'credit') document.getElementById('credit-settings').classList.remove('hidden'); else document.getElementById('credit-settings').classList.add('hidden'); updateBoxModeDesc(val); }
         function updateBoxDueDay(val) { appData.boxes[currentBoxIdx].dueDay = val; }
         function updateBoxModeDesc(val) { }
-        function renderSubItems() { const box = appData.boxes[currentBoxIdx]; const list = document.getElementById('subitems-list'); list.innerHTML = ''; let totalCalc = 0; box.subItems.forEach((item, i) => { let label = ''; if(item.freq === 'annual') { label = ' (Anual)'; if(box.mode === 'monthly') totalCalc += (item.val/12); else totalCalc += item.val; } else if(item.freq === 'custom') { label = ` (${item.parts}x)`; if(box.mode === 'monthly') totalCalc += (item.val/item.parts); else totalCalc += item.val; } else { if(box.mode === 'monthly') totalCalc += item.val; else totalCalc += item.val; } let dayInfo = item.dueDay ? ` <span style="color:var(--primary)">[Dia ${item.dueDay}]</span>` : ''; list.innerHTML += `<div style="display:flex; justify-content:space-between; background:#111; padding:8px; margin-bottom:5px; border-radius:5px;"><span>${item.name} <small style="color:#888">${label}${dayInfo}</small></span><span>${fmt(item.val)} <span onclick="delSubItem(${i})" style="color:red; cursor:pointer; margin-left:10px; font-weight:bold;">✕</span></span></div>`; }); box.target = totalCalc; document.getElementById('detail-total').innerText = fmt(totalCalc); }
-        function addSubItem() { const name = document.getElementById('new-item-name').value; const val = parseFloat(document.getElementById('new-item-val').value); const freq = document.getElementById('new-item-freq').value; const parts = parseFloat(document.getElementById('new-item-parts').value) || 1; const dueDay = parseInt(document.getElementById('new-item-day').value) || null; if(name && val) { appData.boxes[currentBoxIdx].subItems.push({name, val, freq, parts, dueDay}); renderSubItems(); document.getElementById('new-item-name').value = ''; document.getElementById('new-item-val').value = ''; } }
+        function renderSubItems() { const box = appData.boxes[currentBoxIdx]; const list = document.getElementById('subitems-list'); list.innerHTML = ''; let totalCalc = 0; box.subItems.forEach((item, i) => { let label = ''; if(item.freq === 'annual') { label = ' (Anual)'; if(box.mode === 'monthly') totalCalc += (item.val/12); else totalCalc += item.val; } else if(item.freq === 'custom') { label = ` (${item.parts}x)`; if(box.mode === 'monthly') totalCalc += (item.val/item.parts); else totalCalc += item.val; } else { if(box.mode === 'monthly') totalCalc += item.val; else totalCalc += item.val; } let dayInfo = item.dueDay ? ` <span style="color:var(--primary)">[Dia ${item.dueDay}]</span>` : ''; let pBadge = item.priority === '1' ? '<span class="p-badge p-1">P1</span>' : (item.priority === '2' ? '<span class="p-badge p-2">P2</span>' : '<span class="p-badge p-3">P3</span>'); list.innerHTML += `<div style="display:flex; justify-content:space-between; background:#111; padding:8px; margin-bottom:5px; border-radius:5px;"><span>${item.name} ${pBadge} <small style="color:#888">${label}${dayInfo}</small></span><span>${fmt(item.val)} <span onclick="delSubItem(${i})" style="color:red; cursor:pointer; margin-left:10px; font-weight:bold;">✕</span></span></div>`; }); box.target = totalCalc; document.getElementById('detail-total').innerText = fmt(totalCalc); }
+        function addSubItem() { const name = document.getElementById('new-item-name').value; const val = parseFloat(document.getElementById('new-item-val').value); const freq = document.getElementById('new-item-freq').value; const priority = document.getElementById('new-item-priority').value; const parts = parseFloat(document.getElementById('new-item-parts').value) || 1; const dueDay = parseInt(document.getElementById('new-item-day').value) || null; if(name && val) { appData.boxes[currentBoxIdx].subItems.push({name, val, freq, parts, dueDay, priority}); renderSubItems(); document.getElementById('new-item-name').value = ''; document.getElementById('new-item-val').value = ''; } }
         function delSubItem(i) { appData.boxes[currentBoxIdx].subItems.splice(i, 1); renderSubItems(); }
         function closeDetailModal() { document.getElementById('modal-detail').classList.remove('active'); openConfigModal(); renderDashboard(); }
         function addNewBox() { const n=prompt("Nome:"); if(n) { appData.boxes.push({id:'box_'+Date.now(),label:n,color:'#fff',priority:2,mode:'monthly',subItems:[],target:0,current:0}); openConfigModal(); } }
