@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
-    <title>NBV 17.17 - Zombie Killer</title>
+    <title>NBV 17.18 - Ironclad</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -186,11 +186,15 @@
 <body>
 
     <div id="status-indicator" class="status-pill hidden"></div>
-    <div id="global-loading"><div class="spinner"></div><h3 style="margin-top:10px;">Salvando no Cofre...</h3><small style="color:#aaa">Garantindo integridade dos dados.</small></div>
+    <div id="global-loading">
+        <div class="spinner"></div>
+        <h3 style="margin-top:10px;">Conectando ao Quartel General...</h3>
+        <small style="color:#aaa" id="loading-msg">Autenticando...</small>
+    </div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.17</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">Zombie Killer Edition</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.18</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Ironclad Edition (Auto-Retry)</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
@@ -555,7 +559,7 @@
             return null;
         }
 
-        async function attemptGithubLoad() {
+        async function attemptGithubLoad(retryCount = 0) {
             const cfg = getGhConfig();
             if(!cfg.token || !cfg.repo) {
                 openGithubConfig();
@@ -584,7 +588,8 @@
                     return;
                 }
 
-                if(!res.ok) throw new Error("Erro Github: " + res.status);
+                if(res.status === 401) throw new Error("Token Inválido (401)");
+                if(!res.ok) throw new Error(`Erro Github: ${res.status}`);
 
                 const data = await res.json();
                 currentSha = data.sha; 
@@ -599,9 +604,13 @@
                 initNewSystem();
             } catch(e) {
                 console.error(e);
-                alert("Falha ao conectar GitHub. Verifique token/internet.");
-                document.getElementById('welcome-loading').classList.add('hidden');
-                document.getElementById('welcome-btns').classList.remove('hidden');
+                if(retryCount < 3) {
+                    setTimeout(() => attemptGithubLoad(retryCount + 1), 2000);
+                } else {
+                    alert(`Falha na conexão: ${e.message}`);
+                    document.getElementById('welcome-loading').classList.add('hidden');
+                    document.getElementById('welcome-btns').classList.remove('hidden');
+                }
             }
         }
 
