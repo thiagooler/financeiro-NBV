@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBV 17.7 - AI Squadron</title>
+    <title>NBV 17.8 - Bunker Edition</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -177,8 +177,8 @@
     <div id="status-indicator" class="status-pill hidden"></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.7</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">AI Squadron - Auto Fallback</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 17.8</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Bunker Edition (Anti-Censura)</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
@@ -286,9 +286,10 @@
             <h4 style="color:var(--primary); border-bottom:1px solid #333; margin-top:20px; padding-bottom:5px;">🧠 Google Gemini (Inteligência)</h4>
             <label style="color:#666; font-size:0.75rem;">Google API Key</label>
             <input type="password" id="google-key" class="form-input" placeholder="AIza...">
-            <small style="color:#555; display:block; margin-bottom:10px;">A chave fica salva apenas no seu navegador.</small>
+            
+            <button class="btn-action btn-neutral" style="width:100%; margin-bottom:15px; margin-top:5px; font-size:0.8rem" onclick="testAIConnection()">📡 Testar Conexão IA (Debug)</button>
 
-            <button class="btn-action btn-in" style="width:100%; margin-top:15px;" onclick="saveGithubConfig()">💾 Salvar & Conectar</button>
+            <button class="btn-action btn-in" style="width:100%;" onclick="saveGithubConfig()">💾 Salvar & Conectar</button>
             <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button>
         </div>
     </div>
@@ -592,13 +593,41 @@
 
         // --- GEMINI AI SQUADRON ENGINE ---
         
-        // LISTA DE MODELOS (FALLBACK STRATEGY)
+        // SQUADRON LIST
         const AI_MODELS = [
             'gemini-1.5-flash', 
             'gemini-1.5-pro',
             'gemini-1.0-pro', 
             'gemini-pro'
         ];
+
+        async function testAIConnection() {
+            const cfg = getConfigs();
+            if(!cfg.aiKey) return alert("Insira uma chave API primeiro.");
+            
+            const btn = document.querySelector('button[onclick="testAIConnection()"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Testando...";
+            
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cfg.aiKey}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "Hello" }] }] })
+                });
+                
+                if(response.ok) {
+                    alert("✅ Conexão IA Bem Sucedida!");
+                } else {
+                    const err = await response.json();
+                    alert(`❌ Falha: ${err.error?.message || response.status}`);
+                }
+            } catch(e) {
+                alert(`❌ Erro de Rede: ${e.message}`);
+            }
+            btn.innerText = originalText;
+        }
 
         async function runAIDistribution() {
             const avail = appData.masterBalance; 
@@ -637,7 +666,7 @@
 
         async function tryFetchAI(prompt, apiKey, modelIndex) {
             if (modelIndex >= AI_MODELS.length) {
-                alert("Todos os modelos de IA falharam. Usando regras manuais.");
+                alert("Todos os modelos falharam. Motivo provável: Bloqueio de CORS ou Chave Inválida. Usando regras manuais.");
                 runRuleBasedDistribution();
                 return;
             }
@@ -647,10 +676,22 @@
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                
+                // PAYLOAD COM SAFETY OFF
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                    ]
+                };
+
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    body: JSON.stringify(payload)
                 });
 
                 if(!response.ok) throw new Error(`HTTP ${response.status}`);
