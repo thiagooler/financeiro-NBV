@@ -204,29 +204,11 @@
   "transactions": [],
   "bills": [
     {
-      "id": 1767551910881.3416,
-      "autoId": "auto_fixos_aluguelizabel_2026-0",
-      "desc": "aluguel izabel",
-      "val": 200,
-      "date": "2026-01-05",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
       "id": 1767482479533.2488,
       "autoId": "auto_fixos_agua_2026-0",
       "desc": "agua",
       "val": 436.4,
       "date": "2026-01-12",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
-      "id": 1767551910881.8364,
-      "autoId": "auto_fixos_hb20_2026-0",
-      "desc": "hb20",
-      "val": 1400,
-      "date": "2026-01-15",
       "boxId": "fixos",
       "isAuto": true
     },
