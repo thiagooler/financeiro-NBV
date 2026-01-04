@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
-    <title>NBV 18.4 - Integrity Check</title>
+    <title>NBV 18.5 - Strategic Guardian</title>
     <style>
         :root {
             --bg-dark: #0f1115;
@@ -177,11 +177,8 @@
         .status-saved { background: var(--success); color: #000; }
         .status-error { background: var(--danger); color: white; }
 
-        /* LOADING OVERLAY (GLOBAL LOCK) */
         #global-loading { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:none; justify-content:center; align-items:center; flex-direction:column; }
-
         #modal-github { z-index: 3100; }
-        
         .step-box { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
     </style>
 </head>
@@ -191,8 +188,8 @@
     <div id="global-loading"><div class="spinner"></div><h3 style="margin-top:10px;">Salvando no Cofre...</h3><small style="color:#aaa">Garantindo integridade dos dados.</small></div>
 
     <div id="welcome-screen">
-        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 18.4</h1>
-        <p style="color: var(--text-dim); margin-bottom: 40px;">Integrity Check Edition</p>
+        <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 10px;">NBV 18.5</h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">Strategic Guardian Edition</p>
         
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">
@@ -284,11 +281,11 @@
                 <label style="color:#aaa">Item</label><input type="text" id="g-item" class="form-input" placeholder="O que comprar?">
                 <label style="color:#aaa">Valor (R$)</label><input type="number" id="g-price" class="form-input" placeholder="0.00">
                 <label style="color:#aaa">Motivo</label><input type="text" id="g-reason" class="form-input" placeholder="Por que?">
-                <div class="step-box" style="margin-top:15px;"><strong style="color:var(--primary)">1. Copie:</strong><textarea id="g-prompt-out" class="form-input" style="height:60px; font-size:0.7rem;" readonly></textarea><button class="btn-action btn-neutral" style="width:100%" onclick="generateGuardianPrompt()">📋 Copiar Comando</button></div>
+                <div class="step-box" style="margin-top:15px;"><strong style="color:var(--primary)">1. Copie:</strong><textarea id="g-prompt-out" class="form-input" style="height:60px; font-size:0.7rem;" readonly></textarea><button class="btn-action btn-neutral" style="width:100%" onclick="generateGuardianPrompt()">📋 Gerar & Copiar Comando</button></div>
                 <div class="step-box" style="margin-top:15px; border-left-color:var(--success)"><strong style="color:var(--success)">2. Cole JSON:</strong><textarea id="g-json-in" class="form-input" style="height:60px;" placeholder="Cole o JSON da IA..."></textarea><button class="btn-action btn-guardian" style="width:100%" onclick="processGuardianResponse()">🔮 Analisar</button></div>
             </div>
             <div id="guardian-result" class="hidden">
-                <div id="g-verdict-box" style="padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;"><h3 id="g-verdict-title" style="font-size:1.5rem; margin-bottom:10px;"></h3><p id="g-verdict-text" style="font-size:1rem;"></p></div>
+                <div id="g-verdict-box" style="padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;"><h3 id="g-verdict-title" style="font-size:1.5rem; margin-bottom:10px;"></h3><p id="g-verdict-text" style="font-size:1rem;"></p><div id="g-suggested-box" style="color:var(--primary); font-weight:bold; margin-top:10px; font-size:0.9rem;"></div></div>
                 <div class="flex" style="gap:10px;"><button class="btn-action btn-in" style="flex:1" onclick="recordVictory()">🛡️ Resistir</button><button class="btn-action btn-out" style="flex:1; background:#333; border:1px solid #555;" onclick="confirmGuardianSpend()">💸 Comprar</button></div>
             </div>
             <button class="btn-action btn-neutral" style="width:100%; margin-top:15px;" onclick="closeModals()">Fechar</button>
@@ -339,8 +336,9 @@
         // --- CORE DATA & LOGIC ---
         let appData = { masterBalance: 0, boxes: [], bills: [], transactions: [] };
         let currentSha = null; let isSaving = false; let transType = 'in'; let currentBoxIdx = null;
+        let guardianSuggestedBoxId = null; // Store recommended box
 
-        // --- INIT SYSTEM (RESTORED) ---
+        // --- INIT SYSTEM ---
         function initNewSystem() {
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
@@ -354,8 +352,8 @@
             
             sanitizeBills();
             autoGenerateBills();
-            renderDashboard();
-            renderBills(); 
+            if(typeof renderDashboard === 'function') renderDashboard();
+            if(typeof renderBills === 'function') renderBills();
         }
 
         // --- GUARDIAN LOGIC ---
@@ -368,6 +366,7 @@
             document.getElementById('guardian-step-1').classList.remove('hidden');
             document.getElementById('guardian-result').classList.add('hidden');
             document.getElementById('modal-guardian').classList.add('active');
+            guardianSuggestedBoxId = null; // Reset suggestion
         }
 
         function generateGuardianPrompt() {
@@ -378,8 +377,38 @@
             const today = new Date();
             const next15Days = new Date(); next15Days.setDate(today.getDate() + 15);
             const urgentBills = appData.bills.filter(b => new Date(b.date) <= next15Days).reduce((sum, b) => sum + b.val, 0);
-            const priorityProjects = appData.boxes.flatMap(b => b.subItems).filter(i => i.priority == '1').map(i => i.name).join(", ");
-            const prompt = `Sou o Thiago (Warrior, TDAH). Estou querendo comprar: ${item}. Custo: R$ ${price}. Motivo: ${reason}. Minha Situação Agora: - Saldo Livre: R$ ${appData.masterBalance} - Contas vencendo em 15 dias (TOTAL): R$ ${urgentBills} - Projetos Prioridade 1 (Pendentes): ${priorityProjects || "Nenhum crítico"} . Diga se devo comprar ou não. Seja duro se for supérfluo e eu tiver contas/projetos importantes. Responda APENAS JSON: { "verdict": "APROVADO" ou "NEGADO", "message": "Explicação curta e motivadora (estilo general).", "safe_to_spend": true ou false }`;
+            
+            // Full context for AI
+            const context = {
+                item: item,
+                price: parseFloat(price),
+                reason: reason,
+                master_balance: appData.masterBalance,
+                bills_due_15_days: urgentBills,
+                boxes: appData.boxes.map(b => ({
+                    id: b.id,
+                    name: b.label,
+                    balance: b.current,
+                    projects: b.subItems.map(s => ({name: s.name, priority: s.priority || 3}))
+                }))
+            };
+
+            const prompt = `Sou o Thiago (Warrior, TDAH). Quero comprar algo fora do plano.
+DADOS COMPLETOS:
+${JSON.stringify(context)}
+
+MISSÃO:
+1. Analise se posso comprar o item '${item}' por R$ ${price}.
+2. Se aprovado, diga de qual caixa devo tirar o dinheiro (escolha uma das 'boxes' enviadas).
+3. Se negado, explique o motivo (ex: tem conta urgente, prioridade P1 pendente).
+
+Responda APENAS JSON:
+{
+  "verdict": "APROVADO" ou "NEGADO",
+  "message": "Explicação curta.",
+  "safe_to_spend": true/false,
+  "suggested_box_name": "Nome Exato da Caixa Sugerida (ou null se negado)"
+}`;
             const txt = document.getElementById('g-prompt-out');
             txt.value = prompt;
             txt.select();
@@ -395,10 +424,24 @@
                 const box = document.getElementById('g-verdict-box');
                 const title = document.getElementById('g-verdict-title');
                 const text = document.getElementById('g-verdict-text');
+                const suggestDiv = document.getElementById('g-suggested-box');
+
                 if(json.safe_to_spend) {
                     box.style.background = 'rgba(0, 255, 157, 0.2)'; box.style.border = '2px solid var(--success)'; title.innerText = "✅ " + json.verdict; title.style.color = 'var(--success)';
+                    
+                    // Match box name to ID
+                    if(json.suggested_box_name) {
+                        const matchedBox = appData.boxes.find(b => b.label.toLowerCase() === json.suggested_box_name.toLowerCase());
+                        if(matchedBox) {
+                            guardianSuggestedBoxId = matchedBox.id;
+                            suggestDiv.innerText = `Fonte Recomendada: ${matchedBox.label} (Saldo: ${fmt(matchedBox.current)})`;
+                        } else {
+                            suggestDiv.innerText = `Fonte Sugerida: ${json.suggested_box_name} (Não encontrada, selecione manual)`;
+                        }
+                    }
                 } else {
                     box.style.background = 'rgba(255, 0, 85, 0.2)'; box.style.border = '2px solid var(--danger)'; title.innerText = "⛔ " + json.verdict; title.style.color = 'var(--danger)';
+                    suggestDiv.innerText = "";
                 }
                 text.innerText = json.message;
                 document.getElementById('guardian-step-1').classList.add('hidden');
@@ -410,10 +453,19 @@
             const item = document.getElementById('g-item').value;
             const price = document.getElementById('g-price').value;
             closeModals();
+            
+            // Open transaction modal directly
             openTransModal('out');
             document.getElementById('t-desc').value = item;
             document.getElementById('t-amt').value = price;
-            alert("⚠️ Cuidado Warrior! Selecione a caixa correta (Gerais ou Lazer).");
+            
+            // Auto-select the box if AI suggested one
+            if(guardianSuggestedBoxId) {
+                const sel = document.getElementById('t-box');
+                sel.value = guardianSuggestedBoxId;
+                // Trigger change event to show/hide ref box if needed
+                checkSourceSelected(sel);
+            }
         }
 
         function recordVictory() {
@@ -563,13 +615,9 @@
         
         function updateBadge() { const b = document.getElementById('bill-badge'); b.innerText = appData.bills.length; b.classList.toggle('hidden', appData.bills.length === 0); }
         function generateReport() { const s=document.getElementById('rep-start').value, e=document.getElementById('rep-end').value; const txs=appData.transactions.filter(t=>{const d=new Date(t.date); return d>=new Date(s) && d<=new Date(e+'T23:59:59')}); let i=0, o=0; txs.forEach(t=>{if(t.type==='in')i+=t.amount;else if(t.type==='out')o+=t.amount;}); document.getElementById('rep-in').innerText=fmt(i); document.getElementById('rep-out').innerText=fmt(o); document.getElementById('rep-bal').innerText=fmt(i-o); const tb=document.getElementById('rep-table-body'); tb.innerHTML=''; txs.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{ tb.innerHTML+=`<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.desc}</td><td>${t.box}</td><td style="color:${t.type==='in'?'green':'red'}">${fmt(t.amount)}</td></tr>`; }); }
+        function renderBarChart(elId,dataObj,totalRef,color) { const el=document.getElementById(elId); el.innerHTML=''; const sorted=Object.entries(dataObj).sort((a,b)=>b[1]-a[1]); if(sorted.length===0){el.innerHTML='<div style="color:#666;font-size:0.8rem;text-align:center">Sem dados.</div>';return;} const maxVal=sorted[0][1]; sorted.forEach(([label,val])=>{ const barWidth=(val/maxVal)*100; el.innerHTML+=`<div class="bar-row"><div class="bar-label">${label.substring(0,12)}</div><div class="bar-track"><div class="bar-fill" style="width:${barWidth}%; background:${color}"></div></div><div class="bar-val">${fmt(val)}</div></div>`; }); }
         
-        // Auto load on start
-        window.onload = function() {
-            if(getGhConfig().token) {
-                attemptGithubLoad();
-            }
-        }
+        window.onload = function() { if(getGhConfig().token) attemptGithubLoad(); }
     </script>
 </body>
 </html>
