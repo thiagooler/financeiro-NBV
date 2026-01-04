@@ -233,6 +233,14 @@
       "amount": 0,
       "desc": "Baixa Manual: hb20",
       "box": "fixos"
+    },
+    {
+      "id": 1767553995300,
+      "date": "2026-01-04T19:13:15.300Z",
+      "type": "deleted-auto",
+      "amount": 0,
+      "desc": "Baixa Manual: soila",
+      "box": "fixos"
     }
   ],
   "bills": [
@@ -250,15 +258,6 @@
       "autoId": "auto_fixos_ACEB_2026-0",
       "desc": "ACEB",
       "val": 30,
-      "date": "2026-01-20",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
-      "id": 1767553976940.4924,
-      "autoId": "auto_fixos_soila_2026-0",
-      "desc": "soila",
-      "val": 240,
       "date": "2026-01-20",
       "boxId": "fixos",
       "isAuto": true
