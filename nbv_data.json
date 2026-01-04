@@ -204,11 +204,38 @@
   "transactions": [],
   "bills": [
     {
+      "id": 1767541894663.33,
+      "autoId": "auto_fixos_internet_2026-0",
+      "desc": "internet",
+      "val": 280,
+      "date": "2026-01-05",
+      "boxId": "fixos",
+      "isAuto": true
+    },
+    {
+      "id": 1767541894663.4521,
+      "autoId": "auto_fixos_aluguelizabel_2026-0",
+      "desc": "aluguel izabel",
+      "val": 200,
+      "date": "2026-01-05",
+      "boxId": "fixos",
+      "isAuto": true
+    },
+    {
       "id": 1767482479533.2488,
       "autoId": "auto_fixos_agua_2026-0",
       "desc": "agua",
       "val": 436.4,
       "date": "2026-01-12",
+      "boxId": "fixos",
+      "isAuto": true
+    },
+    {
+      "id": 1767541894663.0657,
+      "autoId": "auto_fixos_hb20_2026-0",
+      "desc": "hb20",
+      "val": 1400,
+      "date": "2026-01-15",
       "boxId": "fixos",
       "isAuto": true
     },
@@ -227,42 +254,6 @@
       "desc": "soila",
       "val": 240,
       "date": "2026-01-20",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
-      "id": 1767541894663.33,
-      "autoId": "auto_fixos_internet_2026-0",
-      "desc": "internet",
-      "val": 280,
-      "date": "2026-01-05",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
-      "id": 1767541894663.7625,
-      "autoId": "auto_fixos_cleonice_2026-0",
-      "desc": "cleonice",
-      "val": 1000,
-      "date": "2026-01-01",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
-      "id": 1767541894663.0657,
-      "autoId": "auto_fixos_hb20_2026-0",
-      "desc": "hb20",
-      "val": 1400,
-      "date": "2026-01-15",
-      "boxId": "fixos",
-      "isAuto": true
-    },
-    {
-      "id": 1767541894663.4521,
-      "autoId": "auto_fixos_aluguelizabel_2026-0",
-      "desc": "aluguel izabel",
-      "val": 200,
-      "date": "2026-01-05",
       "boxId": "fixos",
       "isAuto": true
     }
