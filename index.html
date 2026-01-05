@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <title>NBV 19.1 - Gold Master</title>
+    <title>NBV 19.2 - Bulletproof</title>
     <style>
         :root {
             --bg-dark: #0f1115; --bg-panel: #181b21; --primary: #00f2ff;
@@ -17,7 +17,7 @@
         .hidden { display: none !important; }
         .flex { display: flex; gap: 5px; }
         
-        /* UI COMPONENTS */
+        /* UI */
         .nav-bar { display: flex; background: #000; padding: 5px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
         .nav-btn { flex: 1; padding: 15px 5px; background: transparent; border: none; color: #666; font-weight: bold; text-transform: uppercase; border-bottom: 3px solid transparent; }
         .nav-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: #111; }
@@ -30,29 +30,27 @@
         .btn-ai { background: linear-gradient(135deg, #00f2ff, #0078ff); color: #000; }
         .btn-neutral { background: #333; border: 1px solid #555; }
         .btn-github { background: #24292e; border: 1px solid #555; }
-        .btn-guardian { background: linear-gradient(135deg, #ffd700, #ff8c00); color: black; }
+        .btn-guardian { background: linear-gradient(135deg, #ffd700, #ff8c00); color: black; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
         .btn-danger { background: #900; border: 1px solid red; }
         
-        /* CARDS & LISTS */
+        .btn-icon { background: #333; border: 1px solid #555; color: white; width: 35px; height: 35px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-edit { background: #444; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; border: none; color: white; cursor: pointer; }
+
         .master-box { background: linear-gradient(45deg, #1a1d24, #2a2e38); padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; margin: 20px; border: 1px solid #333; }
         .master-value { font-size: 2rem; font-weight: bold; }
         .boxes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; padding: 0 20px; }
-        .box-card { background: var(--bg-panel); border: 1px solid #333; border-radius: 12px; padding: 15px; }
+        .box-card { background: var(--bg-panel); border: 1px solid #333; border-radius: 12px; padding: 15px; position: relative; }
         .box-card.negative { border-color: var(--danger); }
         .bill-list { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
         .bill-card { background: var(--bg-panel); border-left: 4px solid var(--danger); padding: 15px; border-radius: 8px; }
         .bill-card.auto-gen { border-left-color: var(--primary); }
 
-        /* FORMS & MODALS */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
         .modal-content { background: var(--bg-panel); width: 95%; max-width: 600px; padding: 20px; border-radius: 15px; border: 1px solid #444; max-height: 90vh; overflow-y: auto; }
         .form-input, .form-select { width: 100%; padding: 12px; background: #0a0a0a; border: 1px solid #333; color: white; border-radius: 6px; margin-bottom: 10px; }
         
-        /* BOTTOM BAR */
         .bottom-bar { position: fixed; bottom: 0; width: 100%; background: #111; padding: 10px; border-top: 1px solid #333; display: flex; gap: 5px; z-index: 90; }
-
-        /* HELPERS */
         .badge { background: var(--danger); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; }
         .text-green { color: var(--success); } .text-red { color: var(--danger); }
         .spinner { border: 4px solid #333; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
@@ -61,6 +59,10 @@
         #status-indicator { position: fixed; top: 10px; right: 10px; padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; z-index: 4000; font-weight: bold; display: none; }
         .status-sync { background: var(--gold); color: #000; } .status-saved { background: var(--success); color: #000; }
         #global-loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; }
+        
+        .p-badge { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-left: 5px; }
+        .p-1 { background: var(--danger); color: white; } .p-2 { background: var(--gold); color: black; } .p-3 { background: var(--primary); color: black; }
+        .step-box { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
     </style>
 </head>
 <body>
@@ -69,11 +71,14 @@
     <div id="global-loading"><div class="spinner"></div><h4 style="margin-top:10px">Processando...</h4></div>
 
     <div id="welcome-screen" style="position:fixed; inset:0; background:var(--bg-dark); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <h1 style="color:var(--primary); font-size:3rem;">NBV 19.1</h1>
-        <p style="color:#666; margin-bottom:30px;">Gold Master Edition</p>
-        <button class="btn-action btn-github" onclick="attemptGithubLoad()">🔄 Conectar GitHub</button>
-        <button class="btn-action btn-neutral" style="margin-top:10px" onclick="openGithubConfig()">⚙️ Configurar</button>
-        <label class="btn-action btn-neutral" style="margin-top:10px">📂 Arquivo Local <input type="file" hidden onchange="loadFile(this)"></label>
+        <h1 style="color:var(--primary); font-size:3rem;">NBV 19.2</h1>
+        <p style="color:#666; margin-bottom:30px;">Bulletproof Edition</p>
+        <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
+            <button class="btn-action btn-github" onclick="attemptGithubLoad()">🔄 Conectar GitHub</button>
+            <button class="btn-action btn-neutral" onclick="openGithubConfig()">⚙️ Configurar</button>
+            <label class="btn-action btn-neutral" style="padding: 10px;">📂 Arquivo Local <input type="file" hidden onchange="loadFile(this)"></label>
+        </div>
+        <div id="welcome-loading" class="hidden"><div class="spinner"></div><p style="margin-top:10px;">Conectando...</p></div>
     </div>
 
     <div id="app" class="hidden">
@@ -227,7 +232,7 @@
 
     <div id="modal-bill" class="modal-overlay"><div class="modal-content"><h2>Conta</h2><input type="hidden" id="b-id"><input type="text" id="b-desc" class="form-input" placeholder="Desc"><input type="number" id="b-val" class="form-input" placeholder="Valor"><input type="date" id="b-date" class="form-input"><select id="b-box" class="form-select"></select><button class="btn-action btn-out" style="width:100%" onclick="saveBill()">Salvar</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button></div></div>
     
-    <div id="modal-pay-confirm" class="modal-overlay"><div class="modal-content"><h2>Baixar Conta</h2><div id="pay-desc-display"></div><div id="pay-val-expected"></div><input type="number" id="pay-val-real" class="form-input"><select id="pay-method" class="form-select"><option value="cash">Saldo Caixa</option><option value="credit">Cartão</option><option value="master">Mestra</option></select><input type="hidden" id="pay-id-target"><button class="btn-action btn-in" style="width:100%" onclick="commitPayment()">✅ Pagar</button></div></div>
+    <div id="modal-pay-confirm" class="modal-overlay"><div class="modal-content"><h2>Baixar Conta</h2><h3 id="pay-desc-display"></h3><div id="pay-val-expected"></div><input type="number" id="pay-val-real" class="form-input"><select id="pay-method" class="form-select"><option value="cash">Saldo Caixa</option><option value="credit">Cartão</option><option value="master">Mestra</option></select><input type="hidden" id="pay-id-target"><button class="btn-action btn-in" style="width:100%" onclick="commitPayment()">✅ Pagar</button></div></div>
     
     <div id="modal-manual-ai" class="modal-overlay"><div class="modal-content"><h2>IA Distribuir</h2><textarea id="ai-prompt-output" class="form-input" style="height:80px"></textarea><button class="btn-action btn-neutral" style="width:100%" onclick="copyPrompt()">Copiar</button><textarea id="ai-json-input" class="form-input" style="height:80px; margin-top:10px" placeholder="Cole JSON..."></textarea><button class="btn-action btn-in" style="width:100%; margin-top:5px" onclick="processManualAI()">Executar</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button></div></div>
     
@@ -236,15 +241,22 @@
     <div id="modal-invoice" class="modal-overlay"><div class="modal-content"><h2>Fatura</h2><div id="inv-breakdown-list"></div><button class="btn-action btn-credit" style="width:100%; margin-top:10px" onclick="commitInvoicePay()">Pagar Total</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button></div></div>
 
     <script>
-        // --- DATA ---
+        // --- CORE DATA ---
         let appData = { masterBalance: 0, boxes: [], bills: [], transactions: [] };
-        let currentSha = null; let isSaving = false; let transType = 'in'; let currentBoxIdx = null;
-        let guardianSuggestedBoxId = null;
+        let currentSha = null; let isSaving = false; let transType = 'in'; let currentBoxIdx = null; let guardianSuggestedBoxId = null;
 
-        // --- CORE FUNCTIONS (INIT IS HERE) ---
+        // --- SAFE DOM UTILS (THE FIX) ---
+        function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
+        function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
+        function fmt(v) { return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+        function showStatus(msg, type) { const el = document.getElementById('status-indicator'); if(el){el.innerText = msg; el.className = `status-pill status-${type}`; el.style.display='block'; setTimeout(()=>el.style.display='none',3000);} }
+        function toggleLoading(show) { const el = document.getElementById('global-loading'); if(el) el.style.display = show ? 'flex' : 'none'; }
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
+
+        // --- INIT SYSTEM ---
         function initNewSystem() {
-            document.getElementById('welcome-screen').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
+            safeHide('welcome-screen');
+            safeShow('app');
             
             const now = new Date();
             const startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
@@ -259,11 +271,6 @@
             renderBills();
         }
 
-        function fmt(v) { return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
-        function showStatus(msg, type) { const el = document.getElementById('status-indicator'); el.innerText = msg; el.className = `status-pill status-${type}`; el.style.display='block'; setTimeout(()=>el.style.display='none',3000); }
-        function toggleLoading(show) { document.getElementById('global-loading').style.display = show ? 'flex' : 'none'; }
-        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
-
         // --- GITHUB ENGINE ---
         function getGhConfig() { return { token: localStorage.getItem('nbv_gh_token'), user: localStorage.getItem('nbv_gh_user'), repo: localStorage.getItem('nbv_gh_repo'), file: localStorage.getItem('nbv_gh_file') || 'nbv_data.json' }; }
         function saveGithubConfig() {
@@ -272,18 +279,31 @@
             localStorage.setItem('nbv_gh_token', token); localStorage.setItem('nbv_gh_user', user); localStorage.setItem('nbv_gh_repo', repo); localStorage.setItem('nbv_gh_file', file);
             closeModals(); attemptGithubLoad();
         }
+        function openGithubConfig() {
+            const cfg = getGhConfig();
+            document.getElementById('gh-token').value = cfg.token || ''; document.getElementById('gh-user').value = cfg.user || ''; document.getElementById('gh-repo').value = cfg.repo || ''; document.getElementById('gh-file').value = cfg.file || 'nbv_data.json';
+            document.getElementById('modal-config').classList.remove('active'); document.getElementById('modal-github').classList.add('active');
+        }
         function forceReconnect() { if(confirm("Reset Total?")) { localStorage.clear(); location.reload(); } }
 
         async function attemptGithubLoad() {
-            const cfg = getGhConfig(); if(!cfg.token) { openGithubConfig(); return; }
-            document.getElementById('welcome-btns').classList.add('hidden'); document.getElementById('welcome-loading').classList.remove('hidden');
+            const cfg = getGhConfig(); 
+            if(!cfg.token) { safeShow('welcome-screen'); return; }
+            
+            safeHide('welcome-btns'); 
+            safeShow('welcome-loading');
+            
             const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}?t=${Date.now()}`;
             try {
                 const res = await fetch(url, { headers: { 'Authorization': `token ${cfg.token}`, 'Accept': 'application/vnd.github.v3+json' } });
                 if(!res.ok) throw new Error(res.status);
                 const data = await res.json(); currentSha = data.sha; const content = decodeURIComponent(escape(atob(data.content)));
                 appData = JSON.parse(content); initNewSystem();
-            } catch(e) { alert("Erro ao conectar GitHub: " + e.message); document.getElementById('welcome-btns').classList.remove('hidden'); document.getElementById('welcome-loading').classList.add('hidden'); }
+            } catch(e) { 
+                alert("Erro ao conectar GitHub: " + e.message); 
+                safeShow('welcome-btns'); 
+                safeHide('welcome-loading'); 
+            }
         }
 
         async function forceSaveGitHub() {
@@ -296,7 +316,7 @@
                 const body = { message: "Update [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify(appData)))), sha: currentSha };
                 const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${cfg.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
                 if(res.ok) { const d = await res.json(); currentSha = d.content.sha; showStatus("Salvo", "saved"); }
-            } catch(e) { showStatus("Erro", "error"); } finally { isSaving = false; toggleGlobalLoading(false); }
+            } catch(e) { showStatus("Erro", "error"); } finally { isSaving = false; toggleLoading(false); }
         }
         
         function loadFile(input) {
@@ -356,7 +376,6 @@
         function openTransModal(t) { transType = t; document.getElementById('t-title').innerText = t==='in'?'Entrada':'Saída'; document.getElementById('box-select-div').classList.toggle('hidden', t==='in'); document.getElementById('t-amt').value = ''; document.getElementById('t-desc').value = ''; const sel = document.getElementById('t-box'); sel.innerHTML = `<option value="master">Caixa Mestra (${fmt(appData.masterBalance)})</option>`; appData.boxes.forEach(b => sel.innerHTML += `<option value="${b.id}">${b.label} (${fmt(b.current)})</option>`); checkSourceSelected(sel); document.getElementById('modal-trans').classList.add('active'); }
         function checkSourceSelected(s) { const box = appData.boxes.find(b => b.id === s.value); const isCredit = box && box.mode === 'credit'; document.getElementById('ref-box-div').classList.toggle('hidden', !isCredit && s.value !== 'master'); if(isCredit || s.value === 'master') { const ref = document.getElementById('t-ref-box'); ref.innerHTML = '<option value="">Geral</option>'; appData.boxes.forEach(b => { if(b.mode !== 'credit') ref.innerHTML += `<option value="${b.id}">${b.label}</option>`; }); } }
         async function commitTrans() { const amt = parseFloat(document.getElementById('t-amt').value); const desc = document.getElementById('t-desc').value; if(!amt || !desc) return alert("Preencha tudo!"); const boxId = document.getElementById('t-box').value; const refId = document.getElementById('t-ref-box').value; if(transType === 'in') { appData.masterBalance += amt; appData.transactions.push({id:Date.now(), date:new Date().toISOString(), type:'in', amount:amt, desc, box:'master'}); } else { if(boxId === 'master') { appData.masterBalance -= amt; } else { const box = appData.boxes.find(b => b.id === boxId); if(box.mode === 'credit') box.current += amt; else box.current -= amt; } appData.transactions.push({id:Date.now(), date:new Date().toISOString(), type:'out', amount:amt, desc, box:boxId, refBox:refId}); } closeModals(); renderDashboard(); await forceSaveGitHub(); }
-        function openGithubConfig() { const cfg = getGhConfig(); document.getElementById('gh-token').value = cfg.token || ''; document.getElementById('gh-user').value = cfg.user || ''; document.getElementById('gh-repo').value = cfg.repo || ''; document.getElementById('gh-file').value = cfg.file || 'nbv_data.json'; document.getElementById('modal-config').classList.remove('active'); document.getElementById('modal-github').classList.add('active'); }
         function openConfigModal() { const list = document.getElementById('config-list'); list.innerHTML = ''; appData.boxes.forEach((b, i) => { list.innerHTML += `<div style="background:#222; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;"><div><strong>${b.label}</strong><br><small>${fmt(b.current)}</small></div><button class="btn-edit" onclick="editBoxDetails(${i})">⚙️</button></div>`; }); document.getElementById('modal-config').classList.add('active'); }
         function editBoxDetails(idx) { currentBoxIdx = idx; const box = appData.boxes[idx]; document.getElementById('detail-title').innerText = box.label; document.getElementById('box-mode-select').value = box.mode; document.getElementById('box-due-day').value = box.dueDay || ''; renderSubItems(); document.getElementById('modal-config').classList.remove('active'); document.getElementById('modal-detail').classList.add('active'); }
         function renderSubItems() { const box = appData.boxes[currentBoxIdx]; const list = document.getElementById('subitems-list'); const totalEl = document.getElementById('detail-total'); if(!list || !totalEl) return; list.innerHTML = ''; let total = 0; box.subItems.forEach((item, i) => { total += item.val; list.innerHTML += `<div class="flex" style="justify-content:space-between; background:#111; padding:5px; margin-bottom:3px; border-radius:4px;"><span>${item.name} <small class="p-badge p-${item.priority}">P${item.priority}</small></span><span>${fmt(item.val)} <span style="color:red; margin-left:10px; cursor:pointer" onclick="delSubItem(${i})">✕</span></span></div>`; }); box.target = total; totalEl.innerText = fmt(total); }
@@ -365,7 +384,7 @@
         function updateBoxMode(v) { appData.boxes[currentBoxIdx].mode = v; document.getElementById('credit-settings').classList.toggle('hidden', v!=='credit'); }
         function addNewBox() { const n = prompt("Nome da Caixa:"); if(n) { appData.boxes.push({id:'box_'+Date.now(), label:n, color:'#fff', mode:'monthly', subItems:[], current:0}); openConfigModal(); } }
         function renderDashboard() { document.getElementById('master-balance').innerText = fmt(appData.masterBalance); const c = document.getElementById('boxes-container'); c.innerHTML = ''; appData.boxes.forEach(b => { c.innerHTML += `<div class="box-card ${b.current<0?'negative':''}" style="border-top:3px solid ${b.color||'#fff'}"><div class="flex" style="justify-content:space-between"><span>${b.label}</span><small>${b.mode}</small></div><div class="box-val">${fmt(b.current)}</div><small style="color:#666">${b.mode==='target'?'Meta: '+fmt(b.target):''}</small></div>`; }); document.getElementById('bill-badge').innerText = appData.bills.length; document.getElementById('bill-badge').classList.toggle('hidden', appData.bills.length===0); }
-        function renderBills() { const l = document.getElementById('bill-list'); l.innerHTML = ''; appData.bills.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(b => { const box = appData.boxes.find(x => x.id === b.boxId); l.innerHTML += `<div class="bill-card ${b.isAuto?'auto-gen':''}"><div class="bill-header"><strong>${b.desc}</strong><span class="text-red">${fmt(b.val)}</span></div><small>${new Date(b.date).toLocaleDateString()} | ${box?box.label:'?'}</small><div class="bill-actions" style="margin-top:5px"><button class="btn-icon" onclick="editBill(${b.id})">✏️</button><button class="btn-icon" onclick="deleteBill(${b.id})">🗑️</button><button class="btn-action btn-in" style="flex:1" onclick="openBillPayModal(${b.id})">PAGAR</button></div></div>`; }); }
+        function renderBills() { const l = document.getElementById('bill-list'); l.innerHTML = ''; appData.bills.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(b => { const box = appData.boxes.find(x => x.id === b.boxId); l.innerHTML += `<div class="bill-card ${b.isAuto?'auto-gen':''}"><div class="bill-header"><strong>${b.desc}</strong><span class="text-red">${fmt(b.val)}</span></div><small>${new Date(b.date).toLocaleDateString()} | ${box?box.label:'?'}</small><div class="bill-actions" style="margin-top:5px"><button class="btn-icon" onclick="editBill(${b.id})">✏️</button><button class="btn-icon" onclick="safeDeleteBill(${b.id})">🗑️</button><button class="btn-action btn-in" style="flex:1" onclick="openBillPayModal(${b.id})">PAGAR</button></div></div>`; }); }
         
         window.onload = function() { if(getGhConfig().token) attemptGithubLoad(); }
     </script>
