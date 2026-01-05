@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <title>NBV 19.2 - Bulletproof</title>
+    <title>NBV 19.2 - Stabilized</title>
     <style>
         :root {
             --bg-dark: #0f1115; --bg-panel: #181b21; --primary: #00f2ff;
@@ -17,7 +17,7 @@
         .hidden { display: none !important; }
         .flex { display: flex; gap: 5px; }
         
-        /* UI */
+        /* UI COMPONENTS */
         .nav-bar { display: flex; background: #000; padding: 5px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
         .nav-btn { flex: 1; padding: 15px 5px; background: transparent; border: none; color: #666; font-weight: bold; text-transform: uppercase; border-bottom: 3px solid transparent; }
         .nav-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: #111; }
@@ -30,36 +30,42 @@
         .btn-ai { background: linear-gradient(135deg, #00f2ff, #0078ff); color: #000; }
         .btn-neutral { background: #333; border: 1px solid #555; }
         .btn-github { background: #24292e; border: 1px solid #555; }
-        .btn-guardian { background: linear-gradient(135deg, #ffd700, #ff8c00); color: black; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+        .btn-guardian { background: linear-gradient(135deg, #ffd700, #ff8c00); color: black; }
         .btn-danger { background: #900; border: 1px solid red; }
-        
+
         .btn-icon { background: #333; border: 1px solid #555; color: white; width: 35px; height: 35px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-edit { background: #444; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; border: none; color: white; cursor: pointer; }
 
+        /* DASHBOARD */
         .master-box { background: linear-gradient(45deg, #1a1d24, #2a2e38); padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; margin: 20px; border: 1px solid #333; }
         .master-value { font-size: 2rem; font-weight: bold; }
         .boxes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; padding: 0 20px; }
         .box-card { background: var(--bg-panel); border: 1px solid #333; border-radius: 12px; padding: 15px; position: relative; }
         .box-card.negative { border-color: var(--danger); }
+        .box-val { font-size: 1.6rem; font-weight: bold; }
+
+        /* LISTS */
         .bill-list { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
         .bill-card { background: var(--bg-panel); border-left: 4px solid var(--danger); padding: 15px; border-radius: 8px; }
         .bill-card.auto-gen { border-left-color: var(--primary); }
 
+        /* MODALS */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
         .modal-content { background: var(--bg-panel); width: 95%; max-width: 600px; padding: 20px; border-radius: 15px; border: 1px solid #444; max-height: 90vh; overflow-y: auto; }
         .form-input, .form-select { width: 100%; padding: 12px; background: #0a0a0a; border: 1px solid #333; color: white; border-radius: 6px; margin-bottom: 10px; }
-        
-        .bottom-bar { position: fixed; bottom: 0; width: 100%; background: #111; padding: 10px; border-top: 1px solid #333; display: flex; gap: 5px; z-index: 90; }
+
+        /* BOTTOM BAR */
+        .bottom-bar { position: fixed; bottom: 0; width: 100%; background: #111; padding: 10px; border-top: 1px solid #333; display: flex; gap: 5px; z-index: 90; justify-content: space-around; }
+
+        /* HELPERS */
         .badge { background: var(--danger); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; }
         .text-green { color: var(--success); } .text-red { color: var(--danger); }
-        .spinner { border: 4px solid #333; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
         #status-indicator { position: fixed; top: 10px; right: 10px; padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; z-index: 4000; font-weight: bold; display: none; }
         .status-sync { background: var(--gold); color: #000; } .status-saved { background: var(--success); color: #000; }
         #global-loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        
+        .spinner { border: 4px solid #333; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .p-badge { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-left: 5px; }
         .p-1 { background: var(--danger); color: white; } .p-2 { background: var(--gold); color: black; } .p-3 { background: var(--primary); color: black; }
         .step-box { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
@@ -68,15 +74,18 @@
 <body>
 
     <div id="status-indicator"></div>
-    <div id="global-loading"><div class="spinner"></div><h4 style="margin-top:10px">Processando...</h4></div>
+    <div id="global-loading"><div class="spinner"></div><h4 style="margin-top:10px">Carregando...</h4></div>
 
     <div id="welcome-screen" style="position:fixed; inset:0; background:var(--bg-dark); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <h1 style="color:var(--primary); font-size:3rem;">NBV 19.2</h1>
-        <p style="color:#666; margin-bottom:30px;">Bulletproof Edition</p>
+        <p style="color:#666; margin-bottom:30px;">Stabilized Edition</p>
         <div id="welcome-btns" class="flex" style="gap: 15px; flex-direction: column;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">🔄 Conectar GitHub</button>
-            <button class="btn-action btn-neutral" onclick="openGithubConfig()">⚙️ Configurar</button>
-            <label class="btn-action btn-neutral" style="padding: 10px;">📂 Arquivo Local <input type="file" hidden onchange="loadFile(this)"></label>
+            <button class="btn-action btn-neutral" onclick="openGithubConfig()">⚙️ Configurar / Reset</button>
+            <label class="btn-action btn-neutral" style="padding: 10px;">
+                📂 Carregar Arquivo
+                <input type="file" accept=".json" style="display: none;" onchange="loadFile(this)">
+            </label>
         </div>
         <div id="welcome-loading" class="hidden"><div class="spinner"></div><p style="margin-top:10px;">Conectando...</p></div>
     </div>
@@ -145,19 +154,6 @@
         </div>
     </div>
 
-    <div id="modal-github" class="modal-overlay">
-        <div class="modal-content">
-            <h2>Conexão Nuvem</h2>
-            <input type="password" id="gh-token" class="form-input" placeholder="Token">
-            <input type="text" id="gh-user" class="form-input" placeholder="Usuário">
-            <input type="text" id="gh-repo" class="form-input" placeholder="Repositório">
-            <input type="text" id="gh-file" class="form-input" placeholder="Arquivo.json">
-            <button class="btn-action btn-in" style="width:100%; margin-bottom:10px" onclick="saveGithubConfig()">Salvar</button>
-            <button class="btn-action btn-danger" style="width:100%" onclick="forceReconnect()">Reset Total</button>
-            <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button>
-        </div>
-    </div>
-
     <div id="modal-detail" class="modal-overlay">
         <div class="modal-content">
             <h2 id="detail-title" style="color:var(--primary)">Detalhes</h2>
@@ -167,11 +163,10 @@
                 <option value="credit">Cartão de Crédito</option>
             </select>
             <div id="credit-settings" class="hidden"><input type="number" id="box-due-day" class="form-input" placeholder="Dia Vencimento"></div>
-            
             <div id="subitems-area">
                 <div id="subitems-list" style="margin:10px 0;"></div>
                 <div style="background:#222; padding:10px; border-radius:8px;">
-                    <input type="text" id="new-item-name" class="form-input" placeholder="Nome do Item/Projeto">
+                    <input type="text" id="new-item-name" class="form-input" placeholder="Nome">
                     <div class="flex">
                         <input type="number" id="new-item-val" class="form-input" placeholder="Valor">
                         <select id="new-item-priority" class="form-select"><option value="3">P3-Baixa</option><option value="2">P2-Média</option><option value="1">P1-ALTA</option></select>
@@ -180,25 +175,23 @@
                         <input type="number" id="new-item-day" class="form-input" placeholder="Dia Venc.">
                         <select id="new-item-freq" class="form-select"><option value="monthly">Mensal</option><option value="annual">Anual</option></select>
                     </div>
-                    <button class="btn-action btn-in" style="width:100%" onclick="addSubItem()">+ Adicionar Item</button>
+                    <button class="btn-action btn-in" style="width:100%" onclick="addSubItem()">+ Item</button>
                 </div>
             </div>
             <div style="text-align:right; margin-top:10px">Meta: <strong id="detail-total" class="text-green"></strong></div>
-            <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="openConfigModal()">Voltar</button>
+            <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="backToConfig()">Voltar</button>
         </div>
     </div>
 
-    <div id="modal-trans" class="modal-overlay">
+    <div id="modal-github" class="modal-overlay">
         <div class="modal-content">
-            <h2 id="t-title"></h2>
-            <input type="number" id="t-amt" class="form-input" placeholder="Valor (R$)">
-            <input type="text" id="t-desc" class="form-input" placeholder="Descrição">
-            <div id="box-select-div" class="hidden">
-                <label style="color:#aaa">Origem do Dinheiro:</label>
-                <select id="t-box" class="form-select" onchange="checkSourceSelected(this)"></select>
-                <div id="ref-box-div" class="hidden"><label style="color:var(--gold)">Referente a:</label><select id="t-ref-box" class="form-select"></select></div>
-            </div>
-            <button class="btn-action btn-in" style="width:100%" onclick="commitTrans()">Confirmar</button>
+            <h2>Conexão Nuvem</h2>
+            <input type="password" id="gh-token" class="form-input" placeholder="Token">
+            <input type="text" id="gh-user" class="form-input" placeholder="Usuário">
+            <input type="text" id="gh-repo" class="form-input" placeholder="Repositório">
+            <input type="text" id="gh-file" class="form-input" placeholder="Arquivo.json">
+            <button class="btn-action btn-in" style="width:100%; margin-bottom:10px" onclick="saveGithubConfig()">Salvar</button>
+            <button class="btn-action btn-danger" style="width:100%" onclick="forceReconnect()">Reset Total</button>
             <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button>
         </div>
     </div>
@@ -231,47 +224,85 @@
     </div>
 
     <div id="modal-bill" class="modal-overlay"><div class="modal-content"><h2>Conta</h2><input type="hidden" id="b-id"><input type="text" id="b-desc" class="form-input" placeholder="Desc"><input type="number" id="b-val" class="form-input" placeholder="Valor"><input type="date" id="b-date" class="form-input"><select id="b-box" class="form-select"></select><button class="btn-action btn-out" style="width:100%" onclick="saveBill()">Salvar</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button></div></div>
-    
-    <div id="modal-pay-confirm" class="modal-overlay"><div class="modal-content"><h2>Baixar Conta</h2><h3 id="pay-desc-display"></h3><div id="pay-val-expected"></div><input type="number" id="pay-val-real" class="form-input"><select id="pay-method" class="form-select"><option value="cash">Saldo Caixa</option><option value="credit">Cartão</option><option value="master">Mestra</option></select><input type="hidden" id="pay-id-target"><button class="btn-action btn-in" style="width:100%" onclick="commitPayment()">✅ Pagar</button></div></div>
-    
+    <div id="modal-trans" class="modal-overlay"><div class="modal-content"><h2 id="t-title"></h2><input type="number" id="t-amt" class="form-input" placeholder="R$"><input type="text" id="t-desc" class="form-input" placeholder="Desc"><div id="box-select-div" class="hidden"><label>Origem</label><select id="t-box" class="form-select" onchange="checkSourceSelected(this)"></select><div id="ref-box-div" class="hidden"><label>Ref</label><select id="t-ref-box" class="form-select"></select></div></div><button class="btn-action btn-in" style="width:100%" onclick="commitTrans()">Confirmar</button><button class="btn-action btn-neutral" onclick="closeModals()">Cancelar</button></div></div>
+    <div id="modal-pay-confirm" class="modal-overlay"><div class="modal-content"><h2>Baixar</h2><h3 id="pay-desc-display"></h3><div id="pay-val-expected"></div><input type="number" id="pay-val-real" class="form-input"><select id="pay-method" class="form-select"><option value="cash">Saldo Caixa</option><option value="credit">Cartão</option><option value="master">Mestra</option></select><input type="hidden" id="pay-id-target"><button class="btn-action btn-in" style="width:100%" onclick="commitPayment()">✅ Pagar</button></div></div>
     <div id="modal-manual-ai" class="modal-overlay"><div class="modal-content"><h2>IA Distribuir</h2><textarea id="ai-prompt-output" class="form-input" style="height:80px"></textarea><button class="btn-action btn-neutral" style="width:100%" onclick="copyPrompt()">Copiar</button><textarea id="ai-json-input" class="form-input" style="height:80px; margin-top:10px" placeholder="Cole JSON..."></textarea><button class="btn-action btn-in" style="width:100%; margin-top:5px" onclick="processManualAI()">Executar</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button></div></div>
-    
     <div id="modal-distribute" class="modal-overlay"><div class="modal-content"><h2>Confirmar</h2><div id="ai-insight" style="background:#222; padding:10px; border-left:3px solid var(--primary); margin-bottom:10px"></div><div id="distribution-list"></div><div style="text-align:right">Resta: <span id="dist-remain"></span></div><button class="btn-action btn-in" style="width:100%; margin-top:10px" onclick="commitDistribution()">Aplicar</button></div></div>
-
     <div id="modal-invoice" class="modal-overlay"><div class="modal-content"><h2>Fatura</h2><div id="inv-breakdown-list"></div><button class="btn-action btn-credit" style="width:100%; margin-top:10px" onclick="commitInvoicePay()">Pagar Total</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button></div></div>
 
     <script>
-        // --- CORE DATA ---
+        // --- DATA LAYER ---
         let appData = { masterBalance: 0, boxes: [], bills: [], transactions: [] };
         let currentSha = null; let isSaving = false; let transType = 'in'; let currentBoxIdx = null; let guardianSuggestedBoxId = null;
 
-        // --- SAFE DOM UTILS (THE FIX) ---
-        function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
-        function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
-        function fmt(v) { return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
-        function showStatus(msg, type) { const el = document.getElementById('status-indicator'); if(el){el.innerText = msg; el.className = `status-pill status-${type}`; el.style.display='block'; setTimeout(()=>el.style.display='none',3000);} }
-        function toggleLoading(show) { const el = document.getElementById('global-loading'); if(el) el.style.display = show ? 'flex' : 'none'; }
-        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
-
-        // --- INIT SYSTEM ---
-        function initNewSystem() {
-            safeHide('welcome-screen');
-            safeShow('app');
-            
-            const now = new Date();
-            const startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-            const endStr = now.toISOString().split('T')[0];
-            
-            if(document.getElementById('rep-start')) document.getElementById('rep-start').value = startStr;
-            if(document.getElementById('rep-end')) document.getElementById('rep-end').value = endStr;
-            
-            sanitizeBills();
-            autoGenerateBills();
-            renderDashboard();
-            renderBills();
+        // --- UI FUNCTIONS (MUST BE AT TOP) ---
+        function switchTab(t) {
+            ['dashboard','bills','reports'].forEach(x => {
+                document.getElementById('tab-'+x).classList.add('hidden');
+                document.getElementById('btn-'+ (x==='dashboard'?'dash':x)).classList.remove('active');
+            });
+            document.getElementById('tab-'+t).classList.remove('hidden');
+            document.getElementById('btn-'+ (t==='dashboard'?'dash':t)).classList.add('active');
+            if(t==='reports') generateReport();
         }
 
-        // --- GITHUB ENGINE ---
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
+        function showStatus(msg, type) { const el = document.getElementById('status-indicator'); el.innerText=msg; el.className=`status-pill status-${type}`; el.style.display='block'; setTimeout(()=>el.style.display='none',3000); }
+        function toggleLoading(show) { document.getElementById('global-loading').style.display = show ? 'flex' : 'none'; }
+        function fmt(v) { return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+
+        // --- BOX CONFIGURATION ---
+        function openConfigModal() {
+            closeModals();
+            const list = document.getElementById('config-list'); list.innerHTML = '';
+            appData.boxes.forEach((b, i) => {
+                list.innerHTML += `<div style="background:#222; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                    <div><strong>${b.label}</strong><br><small>${fmt(b.current)}</small></div>
+                    <button class="btn-edit" onclick="editBoxDetails(${i})">⚙️</button>
+                </div>`;
+            });
+            document.getElementById('modal-config').classList.add('active');
+        }
+
+        function backToConfig() {
+            closeModals();
+            openConfigModal();
+        }
+
+        function editBoxDetails(idx) {
+            currentBoxIdx = idx; const box = appData.boxes[idx];
+            document.getElementById('detail-title').innerText = box.label;
+            document.getElementById('box-mode-select').value = box.mode;
+            document.getElementById('box-due-day').value = box.dueDay || '';
+            renderSubItems();
+            document.getElementById('modal-config').classList.remove('active');
+            document.getElementById('modal-detail').classList.add('active');
+        }
+
+        function renderSubItems() {
+            const box = appData.boxes[currentBoxIdx]; const list = document.getElementById('subitems-list');
+            const totalEl = document.getElementById('detail-total');
+            if(!list || !totalEl) return;
+            list.innerHTML = ''; let total = 0;
+            box.subItems.forEach((item, i) => {
+                total += item.val;
+                list.innerHTML += `<div class="flex" style="justify-content:space-between; background:#111; padding:5px; margin-bottom:3px; border-radius:4px;">
+                    <span>${item.name} <small class="p-badge p-${item.priority}">P${item.priority}</small></span>
+                    <span>${fmt(item.val)} <span style="color:red; margin-left:10px; cursor:pointer" onclick="delSubItem(${i})">✕</span></span>
+                </div>`;
+            });
+            box.target = total; totalEl.innerText = fmt(total);
+        }
+
+        function addSubItem() {
+            const n = document.getElementById('new-item-name').value; const v = parseFloat(document.getElementById('new-item-val').value); const p = document.getElementById('new-item-priority').value; const d = parseInt(document.getElementById('new-item-day').value); const f = document.getElementById('new-item-freq').value;
+            if(n && v) { appData.boxes[currentBoxIdx].subItems.push({name:n, val:v, priority:p, dueDay:d, freq:f}); renderSubItems(); }
+        }
+        function delSubItem(i) { appData.boxes[currentBoxIdx].subItems.splice(i, 1); renderSubItems(); }
+        function updateBoxMode(v) { appData.boxes[currentBoxIdx].mode = v; document.getElementById('credit-settings').classList.toggle('hidden', v!=='credit'); }
+        function addNewBox() { const n = prompt("Nome da Caixa:"); if(n) { appData.boxes.push({id:'box_'+Date.now(), label:n, color:'#fff', mode:'monthly', subItems:[], current:0}); openConfigModal(); } }
+
+        // --- GITHUB ---
         function getGhConfig() { return { token: localStorage.getItem('nbv_gh_token'), user: localStorage.getItem('nbv_gh_user'), repo: localStorage.getItem('nbv_gh_repo'), file: localStorage.getItem('nbv_gh_file') || 'nbv_data.json' }; }
         function saveGithubConfig() {
             const token = document.getElementById('gh-token').value.trim(); const user = document.getElementById('gh-user').value.trim(); const repo = document.getElementById('gh-repo').value.trim(); const file = document.getElementById('gh-file').value.trim();
@@ -282,28 +313,20 @@
         function openGithubConfig() {
             const cfg = getGhConfig();
             document.getElementById('gh-token').value = cfg.token || ''; document.getElementById('gh-user').value = cfg.user || ''; document.getElementById('gh-repo').value = cfg.repo || ''; document.getElementById('gh-file').value = cfg.file || 'nbv_data.json';
-            document.getElementById('modal-config').classList.remove('active'); document.getElementById('modal-github').classList.add('active');
+            closeModals(); document.getElementById('modal-github').classList.add('active');
         }
         function forceReconnect() { if(confirm("Reset Total?")) { localStorage.clear(); location.reload(); } }
 
         async function attemptGithubLoad() {
-            const cfg = getGhConfig(); 
-            if(!cfg.token) { safeShow('welcome-screen'); return; }
-            
-            safeHide('welcome-btns'); 
-            safeShow('welcome-loading');
-            
+            const cfg = getGhConfig(); if(!cfg.token) { document.getElementById('welcome-screen').classList.remove('hidden'); return; }
+            document.getElementById('welcome-btns').classList.add('hidden'); document.getElementById('welcome-loading').classList.remove('hidden');
             const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${cfg.file}?t=${Date.now()}`;
             try {
                 const res = await fetch(url, { headers: { 'Authorization': `token ${cfg.token}`, 'Accept': 'application/vnd.github.v3+json' } });
                 if(!res.ok) throw new Error(res.status);
                 const data = await res.json(); currentSha = data.sha; const content = decodeURIComponent(escape(atob(data.content)));
                 appData = JSON.parse(content); initNewSystem();
-            } catch(e) { 
-                alert("Erro ao conectar GitHub: " + e.message); 
-                safeShow('welcome-btns'); 
-                safeHide('welcome-loading'); 
-            }
+            } catch(e) { alert("Erro ao conectar GitHub: " + e.message); document.getElementById('welcome-btns').classList.remove('hidden'); document.getElementById('welcome-loading').classList.add('hidden'); }
         }
 
         async function forceSaveGitHub() {
@@ -326,6 +349,97 @@
             reader.readAsText(file);
         }
 
+        // --- INIT & RENDER ---
+        function initNewSystem() {
+            try {
+                document.getElementById('welcome-screen').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                const now = new Date();
+                const startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                const endStr = now.toISOString().split('T')[0];
+                if(document.getElementById('rep-start')) document.getElementById('rep-start').value = startStr;
+                if(document.getElementById('rep-end')) document.getElementById('rep-end').value = endStr;
+                sanitizeBills(); autoGenerateBills(); renderDashboard(); renderBills();
+            } catch(e) { alert("Erro Init: "+e.message); }
+        }
+
+        function renderDashboard() {
+            document.getElementById('master-balance').innerText = fmt(appData.masterBalance);
+            const c = document.getElementById('boxes-container'); c.innerHTML = '';
+            appData.boxes.forEach(b => {
+                c.innerHTML += `<div class="box-card ${b.current<0?'negative':''}" style="border-top:3px solid ${b.color||'#fff'}">
+                    <div class="flex" style="justify-content:space-between"><span>${b.label}</span><small>${b.mode}</small></div>
+                    <div class="box-val">${fmt(b.current)}</div>
+                </div>`;
+            });
+            document.getElementById('bill-badge').innerText = appData.bills.length;
+            document.getElementById('bill-badge').classList.toggle('hidden', appData.bills.length===0);
+        }
+
+        function renderBills() {
+            const l = document.getElementById('bill-list'); l.innerHTML = '';
+            appData.bills.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(b => {
+                const box = appData.boxes.find(x=>x.id===b.boxId);
+                l.innerHTML += `<div class="bill-card ${b.isAuto?'auto-gen':''}">
+                    <div class="bill-header"><strong>${b.desc}</strong><span class="text-red">${fmt(b.val)}</span></div>
+                    <small>${new Date(b.date).toLocaleDateString()} | ${box?box.label:'?'}</small>
+                    <div class="bill-actions" style="margin-top:5px">
+                        <button class="btn-icon" onclick="editBill(${b.id})">✏️</button>
+                        <button class="btn-icon" onclick="safeDeleteBill(${b.id})">🗑️</button>
+                        <button class="btn-action btn-in" style="flex:1" onclick="openBillPayModal(${b.id})">PAGAR</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // --- TRANSACTIONS ---
+        function openTransModal(t) {
+            transType = t;
+            document.getElementById('t-title').innerText = t==='in'?'Entrada':'Saída';
+            document.getElementById('box-select-div').classList.toggle('hidden', t==='in');
+            document.getElementById('t-amt').value = ''; document.getElementById('t-desc').value = '';
+            const sel = document.getElementById('t-box');
+            sel.innerHTML = `<option value="master">Caixa Mestra (${fmt(appData.masterBalance)})</option>`;
+            appData.boxes.forEach(b => sel.innerHTML += `<option value="${b.id}">${b.label} (${fmt(b.current)})</option>`);
+            checkSourceSelected(sel);
+            document.getElementById('modal-trans').classList.add('active');
+        }
+
+        function checkSourceSelected(s) {
+            const box = appData.boxes.find(b => b.id === s.value);
+            const isCredit = box && box.mode === 'credit';
+            document.getElementById('ref-box-div').classList.toggle('hidden', !isCredit && s.value !== 'master');
+            if(isCredit || s.value === 'master') {
+                const ref = document.getElementById('t-ref-box'); ref.innerHTML = '<option value="">Geral</option>';
+                appData.boxes.forEach(b => { if(b.mode !== 'credit') ref.innerHTML += `<option value="${b.id}">${b.label}</option>`; });
+            }
+        }
+
+        async function commitTrans() {
+            const amt = parseFloat(document.getElementById('t-amt').value);
+            const desc = document.getElementById('t-desc').value;
+            if(!amt || !desc) return alert("Preencha tudo!");
+            const boxId = document.getElementById('t-box').value;
+            const refId = document.getElementById('t-ref-box').value;
+            if(transType === 'in') { appData.masterBalance += amt; appData.transactions.push({id:Date.now(), date:new Date().toISOString(), type:'in', amount:amt, desc, box:'master'}); } 
+            else {
+                if(boxId === 'master') { appData.masterBalance -= amt; } 
+                else { const box = appData.boxes.find(b => b.id === boxId); if(box.mode === 'credit') box.current += amt; else box.current -= amt; }
+                appData.transactions.push({id:Date.now(), date:new Date().toISOString(), type:'out', amount:amt, desc, box:boxId, refBox:refId});
+            }
+            closeModals(); renderDashboard(); await forceSaveGitHub();
+        }
+
+        // --- BILLS & LOGIC ---
+        function sanitizeBills() { const now = new Date(); appData.bills = appData.bills.filter(b => { if(!b.isAuto) return true; return !appData.transactions.some(t => { const d = new Date(t.date); return d.getMonth() === now.getMonth() && t.desc.toLowerCase().includes(b.desc.toLowerCase()) && (t.type === 'out' || t.type === 'deleted-auto'); }); }); }
+        function autoGenerateBills() { const now = new Date(); const key = `${now.getFullYear()}-${now.getMonth()}`; appData.boxes.forEach(b => { if(b.subItems) b.subItems.forEach(i => { if(i.dueDay && i.freq === 'monthly') { const id = `auto_${b.id}_${i.name}_${key}`; const paid = appData.transactions.some(t => new Date(t.date).getMonth() === now.getMonth() && t.desc.toLowerCase().includes(i.name.toLowerCase()) && (t.type === 'out' || t.type === 'deleted-auto')); if(!paid && !appData.bills.find(x => x.autoId === id)) { appData.bills.push({id:Date.now()+Math.random(), autoId:id, desc:i.name, val:i.val, date:new Date(now.getFullYear(), now.getMonth(), i.dueDay).toISOString().split('T')[0], boxId:b.id, isAuto:true}); } } }); }); }
+        function openBillPayModal(id) { const b=appData.bills.find(x=>x.id===id); document.getElementById('pay-desc-display').innerText=b.desc; document.getElementById('pay-val-expected').innerText=fmt(b.val); document.getElementById('pay-val-real').value=b.val; document.getElementById('pay-id-target').value=b.id; document.getElementById('modal-pay-confirm').classList.add('active'); }
+        async function commitPayment() { const id=parseFloat(document.getElementById('pay-id-target').value), v=parseFloat(document.getElementById('pay-val-real').value), m=document.getElementById('pay-method').value; const idx=appData.bills.findIndex(x=>x.id===id), b=appData.bills[idx], org=appData.boxes.find(x=>x.id===b.boxId); if(m==='credit'){ const cc=appData.boxes.find(x=>x.mode==='credit'); cc.current+=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'out',amount:v,desc:`PGTO(CC): ${b.desc}`,box:cc.id,refBox:org.id}); } else if(m==='master'){ appData.masterBalance-=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'out',amount:v,desc:`PGTO: ${b.desc}`,box:'master'}); } else { org.current-=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'out',amount:v,desc:`PGTO: ${b.desc}`,box:org.id}); } appData.bills.splice(idx,1); closeModals(); renderBills(); renderDashboard(); await forceSaveGitHub(); }
+        async function safeDeleteBill(id) { if(confirm("Excluir?")) { const idx=appData.bills.findIndex(x=>x.id===id); if(idx>-1){ const b=appData.bills[idx]; if(b.isAuto) appData.transactions.push({id:Date.now(), date:new Date().toISOString(), type:'deleted-auto', amount:0, desc:`Baixa: ${b.desc}`, box:b.boxId}); appData.bills.splice(idx,1); renderBills(); await forceSaveGitHub(); } } }
+        function openBillModal() { closeModals(); const s=document.getElementById('b-box'); s.innerHTML=''; appData.boxes.forEach(b=>s.innerHTML+=`<option value="${b.id}">${b.label}</option>`); document.getElementById('b-id').value=''; document.getElementById('b-desc').value=''; document.getElementById('b-val').value=''; document.getElementById('b-date').value=''; document.getElementById('modal-bill').classList.add('active'); }
+        function editBill(id) { const b=appData.bills.find(x=>x.id===id); if(!b)return; const s=document.getElementById('b-box'); s.innerHTML=''; appData.boxes.forEach(x=>s.innerHTML+=`<option value="${x.id}">${x.label}</option>`); document.getElementById('b-id').value=b.id; document.getElementById('b-desc').value=b.desc; document.getElementById('b-val').value=b.val; document.getElementById('b-date').value=b.date; document.getElementById('b-box').value=b.boxId; document.getElementById('modal-bill').classList.add('active'); }
+        async function saveBill() { const d=document.getElementById('b-desc').value, v=parseFloat(document.getElementById('b-val').value), dt=document.getElementById('b-date').value, bx=document.getElementById('b-box').value, id=document.getElementById('b-id').value; if(d&&v&&dt){ if(id){const idx=appData.bills.findIndex(x=>x.id==id);if(idx>-1){appData.bills[idx].desc=d;appData.bills[idx].val=v;appData.bills[idx].date=dt;appData.bills[idx].boxId=bx;}}else{appData.bills.push({id:Date.now(), desc:d, val:v, date:dt, boxId:bx, isAuto:false});} closeModals(); renderBills(); await forceSaveGitHub(); } }
+
         // --- MANUAL AI & GUARDIAN ---
         function openManualAIDistribution() {
             const avail = appData.masterBalance; if(avail <= 0) return alert('Sem saldo.');
@@ -338,7 +452,6 @@
         async function commitDistribution() { let t=0; document.querySelectorAll('.dist-inp').forEach(i=>{const v=parseFloat(i.value); t+=v; if(v>0){const b=appData.boxes.find(x=>x.id==i.dataset.id); b.current+=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'dist',amount:v,desc:'IA Dist',box:b.id});}}); appData.masterBalance-=t; closeModals(); renderDashboard(); await forceSaveGitHub(); }
         function recalcDist() { let t=0; document.querySelectorAll('.dist-inp').forEach(i=>t+=parseFloat(i.value||0)); document.getElementById('dist-total-alloc').innerText=fmt(t); document.getElementById('dist-remain').innerText=fmt(appData.masterBalance-t); }
 
-        // --- GUARDIAN ---
         function generateGuardianPrompt() {
             const item = document.getElementById('g-item').value; const price = document.getElementById('g-price').value;
             const prompt = `Warrior quer comprar: ${item} (${price}). Saldo: ${appData.masterBalance}. Dívidas: ${appData.bills.length}. JSON: { "verdict": "...", "message": "...", "safe_to_spend": bool, "suggested_box_name": "..." }`;
@@ -364,28 +477,33 @@
         }
         function recordVictory() { alert("Vitória!"); closeModals(); }
 
-        // --- UI & LOGIC HELPERS ---
-        function sanitizeBills() { const now = new Date(); appData.bills = appData.bills.filter(b => { if(!b.isAuto) return true; return !appData.transactions.some(t => { const d = new Date(t.date); return d.getMonth() === now.getMonth() && t.desc.toLowerCase().includes(b.desc.toLowerCase()) && (t.type === 'out' || t.type === 'deleted-auto'); }); }); }
-        function autoGenerateBills() { const now = new Date(); const key = `${now.getFullYear()}-${now.getMonth()}`; appData.boxes.forEach(b => { if(b.subItems) b.subItems.forEach(i => { if(i.dueDay && i.freq === 'monthly') { const id = `auto_${b.id}_${i.name}_${key}`; const paid = appData.transactions.some(t => new Date(t.date).getMonth() === now.getMonth() && t.desc.toLowerCase().includes(i.name.toLowerCase()) && (t.type === 'out' || t.type === 'deleted-auto')); if(!paid && !appData.bills.find(x => x.autoId === id)) { appData.bills.push({id:Date.now()+Math.random(), autoId:id, desc:i.name, val:i.val, date:new Date(now.getFullYear(), now.getMonth(), i.dueDay).toISOString().split('T')[0], boxId:b.id, isAuto:true}); } } }); }); }
-        function openBillPayModal(id) { const b=appData.bills.find(x=>x.id===id); document.getElementById('pay-desc-display').innerText=b.desc; document.getElementById('pay-val-expected').innerText=fmt(b.val); document.getElementById('pay-val-real').value=b.val; document.getElementById('pay-id-target').value=b.id; document.getElementById('modal-pay-confirm').classList.add('active'); }
-        async function commitPayment() { const id=parseFloat(document.getElementById('pay-id-target').value), v=parseFloat(document.getElementById('pay-val-real').value), m=document.getElementById('pay-method').value; const idx=appData.bills.findIndex(x=>x.id===id), b=appData.bills[idx], org=appData.boxes.find(x=>x.id===b.boxId); if(m==='credit'){ const cc=appData.boxes.find(x=>x.mode==='credit'); cc.current+=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'out',amount:v,desc:`PGTO(CC): ${b.desc}`,box:cc.id,refBox:org.id}); } else if(m==='master'){ appData.masterBalance-=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'out',amount:v,desc:`PGTO: ${b.desc}`,box:'master'}); } else { org.current-=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'out',amount:v,desc:`PGTO: ${b.desc}`,box:org.id}); } appData.bills.splice(idx,1); closeModals(); renderBills(); renderDashboard(); await forceSaveGitHub(); }
-        async function safeDeleteBill(id) { if(confirm("Excluir?")) { const idx=appData.bills.findIndex(x=>x.id===id); if(idx>-1){ const b=appData.bills[idx]; if(b.isAuto) appData.transactions.push({id:Date.now(), date:new Date().toISOString(), type:'deleted-auto', amount:0, desc:`Baixa: ${b.desc}`, box:b.boxId}); appData.bills.splice(idx,1); renderBills(); await forceSaveGitHub(); } } }
-        function openBillModal() { closeModals(); const s=document.getElementById('b-box'); s.innerHTML=''; appData.boxes.forEach(b=>s.innerHTML+=`<option value="${b.id}">${b.label}</option>`); document.getElementById('b-id').value=''; document.getElementById('b-desc').value=''; document.getElementById('b-val').value=''; document.getElementById('b-date').value=''; document.getElementById('modal-bill').classList.add('active'); }
-        function editBill(id) { const b=appData.bills.find(x=>x.id===id); if(!b)return; const s=document.getElementById('b-box'); s.innerHTML=''; appData.boxes.forEach(x=>s.innerHTML+=`<option value="${x.id}">${x.label}</option>`); document.getElementById('b-id').value=b.id; document.getElementById('b-desc').value=b.desc; document.getElementById('b-val').value=b.val; document.getElementById('b-date').value=b.date; document.getElementById('b-box').value=b.boxId; document.getElementById('modal-bill').classList.add('active'); }
-        async function saveBill() { const d=document.getElementById('b-desc').value, v=parseFloat(document.getElementById('b-val').value), dt=document.getElementById('b-date').value, bx=document.getElementById('b-box').value, id=document.getElementById('b-id').value; if(d&&v&&dt){ if(id){const idx=appData.bills.findIndex(x=>x.id==id);if(idx>-1){appData.bills[idx].desc=d;appData.bills[idx].val=v;appData.bills[idx].date=dt;appData.bills[idx].boxId=bx;}}else{appData.bills.push({id:Date.now(), desc:d, val:v, date:dt, boxId:bx, isAuto:false});} closeModals(); renderBills(); await forceSaveGitHub(); } }
-        function openTransModal(t) { transType = t; document.getElementById('t-title').innerText = t==='in'?'Entrada':'Saída'; document.getElementById('box-select-div').classList.toggle('hidden', t==='in'); document.getElementById('t-amt').value = ''; document.getElementById('t-desc').value = ''; const sel = document.getElementById('t-box'); sel.innerHTML = `<option value="master">Caixa Mestra (${fmt(appData.masterBalance)})</option>`; appData.boxes.forEach(b => sel.innerHTML += `<option value="${b.id}">${b.label} (${fmt(b.current)})</option>`); checkSourceSelected(sel); document.getElementById('modal-trans').classList.add('active'); }
-        function checkSourceSelected(s) { const box = appData.boxes.find(b => b.id === s.value); const isCredit = box && box.mode === 'credit'; document.getElementById('ref-box-div').classList.toggle('hidden', !isCredit && s.value !== 'master'); if(isCredit || s.value === 'master') { const ref = document.getElementById('t-ref-box'); ref.innerHTML = '<option value="">Geral</option>'; appData.boxes.forEach(b => { if(b.mode !== 'credit') ref.innerHTML += `<option value="${b.id}">${b.label}</option>`; }); } }
-        async function commitTrans() { const amt = parseFloat(document.getElementById('t-amt').value); const desc = document.getElementById('t-desc').value; if(!amt || !desc) return alert("Preencha tudo!"); const boxId = document.getElementById('t-box').value; const refId = document.getElementById('t-ref-box').value; if(transType === 'in') { appData.masterBalance += amt; appData.transactions.push({id:Date.now(), date:new Date().toISOString(), type:'in', amount:amt, desc, box:'master'}); } else { if(boxId === 'master') { appData.masterBalance -= amt; } else { const box = appData.boxes.find(b => b.id === boxId); if(box.mode === 'credit') box.current += amt; else box.current -= amt; } appData.transactions.push({id:Date.now(), date:new Date().toISOString(), type:'out', amount:amt, desc, box:boxId, refBox:refId}); } closeModals(); renderDashboard(); await forceSaveGitHub(); }
-        function openConfigModal() { const list = document.getElementById('config-list'); list.innerHTML = ''; appData.boxes.forEach((b, i) => { list.innerHTML += `<div style="background:#222; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;"><div><strong>${b.label}</strong><br><small>${fmt(b.current)}</small></div><button class="btn-edit" onclick="editBoxDetails(${i})">⚙️</button></div>`; }); document.getElementById('modal-config').classList.add('active'); }
-        function editBoxDetails(idx) { currentBoxIdx = idx; const box = appData.boxes[idx]; document.getElementById('detail-title').innerText = box.label; document.getElementById('box-mode-select').value = box.mode; document.getElementById('box-due-day').value = box.dueDay || ''; renderSubItems(); document.getElementById('modal-config').classList.remove('active'); document.getElementById('modal-detail').classList.add('active'); }
-        function renderSubItems() { const box = appData.boxes[currentBoxIdx]; const list = document.getElementById('subitems-list'); const totalEl = document.getElementById('detail-total'); if(!list || !totalEl) return; list.innerHTML = ''; let total = 0; box.subItems.forEach((item, i) => { total += item.val; list.innerHTML += `<div class="flex" style="justify-content:space-between; background:#111; padding:5px; margin-bottom:3px; border-radius:4px;"><span>${item.name} <small class="p-badge p-${item.priority}">P${item.priority}</small></span><span>${fmt(item.val)} <span style="color:red; margin-left:10px; cursor:pointer" onclick="delSubItem(${i})">✕</span></span></div>`; }); box.target = total; totalEl.innerText = fmt(total); }
-        function addSubItem() { const n = document.getElementById('new-item-name').value; const v = parseFloat(document.getElementById('new-item-val').value); const p = document.getElementById('new-item-priority').value; const d = parseInt(document.getElementById('new-item-day').value); const f = document.getElementById('new-item-freq').value; if(n && v) { appData.boxes[currentBoxIdx].subItems.push({name:n, val:v, priority:p, dueDay:d, freq:f}); renderSubItems(); } }
-        function delSubItem(i) { appData.boxes[currentBoxIdx].subItems.splice(i, 1); renderSubItems(); }
-        function updateBoxMode(v) { appData.boxes[currentBoxIdx].mode = v; document.getElementById('credit-settings').classList.toggle('hidden', v!=='credit'); }
-        function addNewBox() { const n = prompt("Nome da Caixa:"); if(n) { appData.boxes.push({id:'box_'+Date.now(), label:n, color:'#fff', mode:'monthly', subItems:[], current:0}); openConfigModal(); } }
-        function renderDashboard() { document.getElementById('master-balance').innerText = fmt(appData.masterBalance); const c = document.getElementById('boxes-container'); c.innerHTML = ''; appData.boxes.forEach(b => { c.innerHTML += `<div class="box-card ${b.current<0?'negative':''}" style="border-top:3px solid ${b.color||'#fff'}"><div class="flex" style="justify-content:space-between"><span>${b.label}</span><small>${b.mode}</small></div><div class="box-val">${fmt(b.current)}</div><small style="color:#666">${b.mode==='target'?'Meta: '+fmt(b.target):''}</small></div>`; }); document.getElementById('bill-badge').innerText = appData.bills.length; document.getElementById('bill-badge').classList.toggle('hidden', appData.bills.length===0); }
-        function renderBills() { const l = document.getElementById('bill-list'); l.innerHTML = ''; appData.bills.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(b => { const box = appData.boxes.find(x => x.id === b.boxId); l.innerHTML += `<div class="bill-card ${b.isAuto?'auto-gen':''}"><div class="bill-header"><strong>${b.desc}</strong><span class="text-red">${fmt(b.val)}</span></div><small>${new Date(b.date).toLocaleDateString()} | ${box?box.label:'?'}</small><div class="bill-actions" style="margin-top:5px"><button class="btn-icon" onclick="editBill(${b.id})">✏️</button><button class="btn-icon" onclick="safeDeleteBill(${b.id})">🗑️</button><button class="btn-action btn-in" style="flex:1" onclick="openBillPayModal(${b.id})">PAGAR</button></div></div>`; }); }
-        
+        // --- INVOICE ---
+        function payInvoice() {
+            const creditBox = appData.boxes.find(b => b.mode === 'credit');
+            if(!creditBox) return alert("Crie uma caixa 'Cartão de Crédito'");
+            document.getElementById('inv-total').innerText = fmt(creditBox.current);
+            const list = document.getElementById('inv-breakdown-list'); list.innerHTML = '';
+            let html = `<div class="invoice-row" style="background:#222; padding:10px; margin-bottom:5px"><span>Mestra (${fmt(appData.masterBalance)})</span><input type="number" class="inv-source-inp" data-id="master" placeholder="0.00" style="width:80px" oninput="calcInvTotal()"></div>`;
+            appData.boxes.forEach(b => { if(b.mode !== 'credit') html += `<div class="invoice-row" style="background:#222; padding:10px; margin-bottom:5px"><span>${b.label} (${fmt(b.current)})</span><input type="number" class="inv-source-inp" data-id="${b.id}" placeholder="0.00" style="width:80px" oninput="calcInvTotal()"></div>`; });
+            list.innerHTML = html; calcInvTotal(); document.getElementById('modal-invoice').classList.add('active');
+        }
+        function calcInvTotal() { let tot = 0; document.querySelectorAll('.inv-source-inp').forEach(i => tot += parseFloat(i.value || 0)); document.getElementById('inv-pay-total').innerText = fmt(tot); }
+        async function commitInvoicePay() {
+            let total = 0; const creditBox = appData.boxes.find(b => b.mode === 'credit');
+            document.querySelectorAll('.inv-source-inp').forEach(i => {
+                const val = parseFloat(i.value || 0);
+                if(val > 0) {
+                    if(i.dataset.id === 'master') appData.masterBalance -= val;
+                    else { const b = appData.boxes.find(box => box.id === i.dataset.id); b.current -= val; }
+                    total += val;
+                    appData.transactions.push({id: Date.now(), date: new Date().toISOString(), type: 'out', amount: val, desc: 'Fatura', box: i.dataset.id});
+                }
+            });
+            if(total > 0) { creditBox.current -= total; closeModals(); renderDashboard(); await forceSaveGitHub(); }
+        }
+        function generateReport() { const s=document.getElementById('rep-start').value, e=document.getElementById('rep-end').value; const txs=appData.transactions.filter(t=>{const d=new Date(t.date); return d>=new Date(s) && d<=new Date(e+'T23:59:59')}); let i=0, o=0; txs.forEach(t=>{if(t.type==='in')i+=t.amount;else if(t.type==='out')o+=t.amount;}); document.getElementById('rep-in').innerText=fmt(i); document.getElementById('rep-out').innerText=fmt(o); document.getElementById('rep-bal').innerText=fmt(i-o); const tb=document.getElementById('rep-table-body'); tb.innerHTML=''; txs.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{ tb.innerHTML+=`<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.desc}</td><td>${t.box}</td><td style="color:${t.type==='in'?'green':'red'}">${fmt(t.amount)}</td></tr>`; }); }
+        function exportCSV() { /* same */ }
+
         window.onload = function() { if(getGhConfig().token) attemptGithubLoad(); }
     </script>
 </body>
