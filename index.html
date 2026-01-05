@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <title>NBV 19.4 - Guardian Patch</title>
+    <title>NBV 19.5 - Nav Fix</title>
     <style>
         :root {
             --bg-dark: #0f1115; --bg-panel: #181b21; --primary: #00f2ff;
@@ -82,14 +82,14 @@
     <div id="global-loading"><div class="spinner"></div><h4 style="margin-top:15px; color:#fff;">Processando...</h4></div>
 
     <div id="welcome-screen" style="position:fixed; inset:0; background:var(--bg-dark); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <h1 style="color:var(--primary); font-size:3.5rem; margin-bottom:10px;">NBV 19.4</h1>
-        <p style="color:#666; margin-bottom:40px;">Guardian Patch</p>
+        <h1 style="color:var(--primary); font-size:3.5rem; margin-bottom:10px;">NBV 19.5</h1>
+        <p style="color:#666; margin-bottom:40px;">Nav Fix</p>
         <div id="welcome-btns" style="display:flex; flex-direction:column; gap:15px; width:80%; max-width:300px;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">🔄 Conectar GitHub</button>
             <button class="btn-action btn-neutral" onclick="openGithubConfig()">⚙️ Configurar</button>
             <label class="btn-action btn-neutral">📂 Arquivo Local <input type="file" hidden onchange="loadFile(this)"></label>
         </div>
-        <div id="welcome-loading" class="hidden"><div class="spinner"></div><p style="margin-top:15px; color:#888;">Conectando...</p></div>
+        <div id="welcome-loading" class="hidden"><div class="spinner"></div><p style="margin-top:15px; color:#888;">Conectando ao Quartel...</p></div>
     </div>
 
     <div id="app" class="hidden">
@@ -147,33 +147,6 @@
         </div>
     </div>
 
-    <div id="modal-guardian" class="modal-overlay">
-        <div class="modal-content" style="border:2px solid var(--gold)">
-            <h2 style="color:var(--gold); text-align:center; margin-bottom:15px;">🛡️ Guardião</h2>
-            <div id="guardian-step-1">
-                <input type="text" id="g-item" class="form-input" placeholder="O que comprar?">
-                <input type="number" id="g-price" class="form-input" placeholder="Valor (R$)">
-                <input type="text" id="g-reason" class="form-input" placeholder="Motivo?">
-                <textarea id="g-prompt-out" class="form-input" style="height:60px; font-size:0.7rem; margin-top:10px" readonly></textarea>
-                <button class="btn-action btn-neutral" style="width:100%; margin-top:5px" onclick="generateGuardianPrompt()">1. Copiar Comando</button>
-                <textarea id="g-json-in" class="form-input" style="height:60px; margin-top:15px" placeholder="Cole o JSON da IA..."></textarea>
-                <button class="btn-action btn-guardian" style="width:100%; margin-top:5px" onclick="processGuardianResponse()">2. Analisar</button>
-            </div>
-            <div id="guardian-result" class="hidden">
-                <div id="g-verdict-box" style="padding:15px; border-radius:8px; margin:10px 0; text-align:center; border:1px solid #555;">
-                    <h3 id="g-verdict-title" style="font-size:1.5rem; margin-bottom:10px;"></h3>
-                    <p id="g-verdict-text" style="font-size:1rem;"></p>
-                    <div id="g-suggested-box" style="color:var(--primary); margin-top:10px; font-weight:bold;"></div>
-                </div>
-                <div class="flex">
-                    <button class="btn-action btn-in" style="flex:1" onclick="recordVictory()">Resistir</button>
-                    <button class="btn-action btn-out" style="flex:1" onclick="confirmGuardianSpend()">Comprar</button>
-                </div>
-            </div>
-            <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button>
-        </div>
-    </div>
-
     <div id="modal-config" class="modal-overlay">
         <div class="modal-content">
             <div class="flex" style="justify-content:space-between; margin-bottom:15px;"><h2>Configuração</h2><button class="btn-action btn-in" onclick="addNewBox()">+ Caixa</button></div>
@@ -208,7 +181,7 @@
                 </div>
             </div>
             <div style="text-align:right; margin-top:15px; font-size:1.1rem;">Meta: <strong id="detail-total" class="text-green">R$ 0,00</strong></div>
-            <button class="btn-action btn-neutral" style="width:100%; margin-top:15px;" onclick="openConfigModal()">Voltar</button>
+            <button class="btn-action btn-neutral" style="width:100%; margin-top:15px;" onclick="backToConfig()">Voltar</button>
         </div>
     </div>
 
@@ -228,11 +201,54 @@
     </div>
 
     <div id="modal-bill" class="modal-overlay"><div class="modal-content"><h2>Conta</h2><input type="hidden" id="b-id"><label style="color:#aaa">Descrição</label><input type="text" id="b-desc" class="form-input"><label style="color:#aaa">Valor</label><input type="number" id="b-val" class="form-input"><label style="color:#aaa">Vencimento</label><input type="date" id="b-date" class="form-input"><label style="color:#aaa">Caixa</label><select id="b-box" class="form-select"></select><button class="btn-action btn-out" style="width:100%" onclick="saveBill()">Salvar</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button></div></div>
+
     <div id="modal-pay-confirm" class="modal-overlay"><div class="modal-content"><h2>Baixar Conta</h2><h3 id="pay-desc-display" style="color:white; margin-bottom:10px;"></h3><div id="pay-val-expected" style="color:#888; margin-bottom:15px;"></div><label style="color:#aaa">Valor Pago</label><input type="number" id="pay-val-real" class="form-input" style="font-size:1.5rem; color:var(--success);"><label style="color:#aaa">Método</label><select id="pay-method" class="form-select"><option value="cash">Saldo Caixa</option><option value="credit">Cartão</option><option value="master">Mestra</option></select><input type="hidden" id="pay-id-target"><button class="btn-action btn-in" style="width:100%; margin-top:15px;" onclick="commitPayment()">✅ Pagar</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closePayModal()">Cancelar</button></div></div>
-    <div id="modal-github" class="modal-overlay"><div class="modal-content"><h2>Conexão Nuvem</h2><input type="password" id="gh-token" class="form-input" placeholder="Token"><input type="text" id="gh-user" class="form-input" placeholder="Usuário"><input type="text" id="gh-repo" class="form-input" placeholder="Repositório"><input type="text" id="gh-file" class="form-input" placeholder="Arquivo.json"><button class="btn-action btn-in" style="width:100%; margin-bottom:10px" onclick="saveGithubConfig()">Salvar</button><button class="btn-action btn-danger" style="width:100%" onclick="forceReconnect()">Reset Total</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button></div></div>
+
+    <div id="modal-guardian" class="modal-overlay">
+        <div class="modal-content" style="border:2px solid var(--gold)">
+            <h2 style="color:var(--gold); text-align:center; margin-bottom:15px;">🛡️ Guardião</h2>
+            <div id="guardian-step-1">
+                <input type="text" id="g-item" class="form-input" placeholder="O que comprar?">
+                <input type="number" id="g-price" class="form-input" placeholder="Valor (R$)">
+                <input type="text" id="g-reason" class="form-input" placeholder="Motivo?">
+                <textarea id="g-prompt-out" class="form-input" style="height:60px; font-size:0.7rem; margin-top:10px" readonly></textarea>
+                <button class="btn-action btn-neutral" style="width:100%; margin-top:5px" onclick="generateGuardianPrompt()">1. Copiar Comando</button>
+                <textarea id="g-json-in" class="form-input" style="height:60px; margin-top:15px" placeholder="Cole o JSON da IA..."></textarea>
+                <button class="btn-action btn-guardian" style="width:100%; margin-top:5px" onclick="processGuardianResponse()">2. Analisar</button>
+            </div>
+            <div id="guardian-result" class="hidden">
+                <div id="g-verdict-box" style="padding:15px; border-radius:8px; margin:10px 0; text-align:center; border:1px solid #555;">
+                    <h3 id="g-verdict-title" style="font-size:1.5rem; margin-bottom:10px;"></h3>
+                    <p id="g-verdict-text" style="font-size:1rem;"></p>
+                    <div id="g-suggested-box" style="color:var(--primary); margin-top:10px; font-weight:bold;"></div>
+                </div>
+                <div class="flex">
+                    <button class="btn-action btn-in" style="flex:1" onclick="recordVictory()">Resistir</button>
+                    <button class="btn-action btn-out" style="flex:1" onclick="confirmGuardianSpend()">Comprar</button>
+                </div>
+            </div>
+            <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button>
+        </div>
+    </div>
+
+    <div id="modal-github" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Conexão Nuvem</h2>
+            <input type="password" id="gh-token" class="form-input" placeholder="Token">
+            <input type="text" id="gh-user" class="form-input" placeholder="Usuário">
+            <input type="text" id="gh-repo" class="form-input" placeholder="Repositório">
+            <input type="text" id="gh-file" class="form-input" placeholder="Arquivo.json">
+            <button class="btn-action btn-in" style="width:100%; margin-bottom:10px" onclick="saveGithubConfig()">Salvar</button>
+            <button class="btn-action btn-danger" style="width:100%" onclick="forceReconnect()">Reset Total</button>
+            <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button>
+        </div>
+    </div>
+
     <div id="modal-manual-ai" class="modal-overlay"><div class="modal-content"><h2>IA Distribuir</h2><textarea id="ai-prompt-output" class="form-input" style="height:80px"></textarea><button class="btn-action btn-neutral" style="width:100%" onclick="copyPrompt()">Copiar</button><textarea id="ai-json-input" class="form-input" style="height:80px; margin-top:10px" placeholder="Cole JSON..."></textarea><button class="btn-action btn-in" style="width:100%; margin-top:5px" onclick="processManualAI()">Executar</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button></div></div>
+    
     <div id="modal-distribute" class="modal-overlay"><div class="modal-content"><h2>Confirmar</h2><div id="ai-insight" style="background:#222; padding:10px; border-left:3px solid var(--primary); margin-bottom:10px"></div><div id="distribution-list"></div><div style="text-align:right; margin-top:10px;">Resta: <span id="dist-remain" style="font-weight:bold;"></span></div><button class="btn-action btn-in" style="width:100%; margin-top:10px" onclick="commitDistribution()">Aplicar</button></div></div>
-    <div id="modal-invoice" class="modal-overlay"><div class="modal-content"><h2>Fatura</h2><div id="inv-breakdown-list"></div><button class="btn-action btn-credit" style="width:100%; margin-top:10px" onclick="commitInvoicePay()">Pagar Total</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button></div></div>
+
+    <div id="modal-invoice" class="modal-overlay"><div class="modal-content"><h2>Fatura</h2><div id="inv-total" style="font-size:1.5rem; font-weight:bold; margin-bottom:15px; color:var(--credit);"></div><div id="inv-breakdown-list"></div><div style="text-align:right; margin-top:10px;">Pagar: <strong id="inv-pay-total" class="text-green"></strong></div><button class="btn-action btn-credit" style="width:100%; margin-top:10px" onclick="commitInvoicePay()">Pagar Total</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button></div></div>
 
     <script>
         // --- DATA ---
@@ -301,6 +317,11 @@
                 </div>`;
             });
             document.getElementById('modal-config').classList.add('active');
+        }
+
+        function backToConfig() {
+            document.getElementById('modal-detail').classList.remove('active');
+            openConfigModal();
         }
 
         function editBoxDetails(idx) {
