@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <title>NBV 19.5 - Nav Fix</title>
+    <title>NBV 20.0 - Sentinela AI</title>
     <style>
         :root {
             --bg-dark: #0f1115; --bg-panel: #181b21; --primary: #00f2ff;
@@ -82,14 +82,14 @@
     <div id="global-loading"><div class="spinner"></div><h4 style="margin-top:15px; color:#fff;">Processando...</h4></div>
 
     <div id="welcome-screen" style="position:fixed; inset:0; background:var(--bg-dark); z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <h1 style="color:var(--primary); font-size:3.5rem; margin-bottom:10px;">NBV 19.5</h1>
-        <p style="color:#666; margin-bottom:40px;">Nav Fix</p>
+        <h1 style="color:var(--primary); font-size:3.5rem; margin-bottom:10px;">NBV 20.0</h1>
+        <p style="color:#666; margin-bottom:40px;">Sentinela AI Edition</p>
         <div id="welcome-btns" style="display:flex; flex-direction:column; gap:15px; width:80%; max-width:300px;">
             <button class="btn-action btn-github" onclick="attemptGithubLoad()">🔄 Conectar GitHub</button>
             <button class="btn-action btn-neutral" onclick="openGithubConfig()">⚙️ Configurar</button>
             <label class="btn-action btn-neutral">📂 Arquivo Local <input type="file" hidden onchange="loadFile(this)"></label>
         </div>
-        <div id="welcome-loading" class="hidden"><div class="spinner"></div><p style="margin-top:15px; color:#888;">Conectando ao Quartel...</p></div>
+        <div id="welcome-loading" class="hidden"><div class="spinner"></div><p style="margin-top:15px; color:#888;">Conectando...</p></div>
     </div>
 
     <div id="app" class="hidden">
@@ -144,6 +144,33 @@
             <button class="btn-action btn-guardian" style="flex:2" onclick="openGuardianModal()">🛡️ Guardião</button>
             <button class="btn-action btn-neutral" style="flex:1" onclick="forceSaveGitHub()">💾</button>
             <button class="btn-action btn-neutral" style="flex:1" onclick="openConfigModal()">⚙️</button>
+        </div>
+    </div>
+
+    <div id="modal-guardian" class="modal-overlay">
+        <div class="modal-content" style="border:2px solid var(--gold)">
+            <h2 style="color:var(--gold); text-align:center; margin-bottom:15px;">🛡️ Sentinela AI</h2>
+            <div id="guardian-step-1">
+                <input type="text" id="g-item" class="form-input" placeholder="O que comprar?">
+                <input type="number" id="g-price" class="form-input" placeholder="Valor (R$)">
+                <input type="text" id="g-reason" class="form-input" placeholder="Motivo?">
+                <textarea id="g-prompt-out" class="form-input" style="height:80px; font-size:0.7rem; margin-top:10px" readonly></textarea>
+                <button class="btn-action btn-neutral" style="width:100%; margin-top:5px" onclick="generateGuardianPrompt()">1. Copiar Comando</button>
+                <textarea id="g-json-in" class="form-input" style="height:60px; margin-top:15px" placeholder="Cole o JSON da IA..."></textarea>
+                <button class="btn-action btn-guardian" style="width:100%; margin-top:5px" onclick="processGuardianResponse()">2. Analisar</button>
+            </div>
+            <div id="guardian-result" class="hidden">
+                <div id="g-verdict-box" style="padding:15px; border-radius:8px; margin:10px 0; text-align:center; border:1px solid #555;">
+                    <h3 id="g-verdict-title" style="font-size:1.5rem; margin-bottom:10px;"></h3>
+                    <p id="g-verdict-text" style="font-size:1rem;"></p>
+                    <div id="g-suggested-box" style="color:var(--primary); margin-top:10px; font-weight:bold;"></div>
+                </div>
+                <div class="flex">
+                    <button class="btn-action btn-in" style="flex:1" onclick="recordVictory()">Resistir</button>
+                    <button class="btn-action btn-out" style="flex:1" onclick="confirmGuardianSpend()">Comprar</button>
+                </div>
+            </div>
+            <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button>
         </div>
     </div>
 
@@ -204,33 +231,6 @@
 
     <div id="modal-pay-confirm" class="modal-overlay"><div class="modal-content"><h2>Baixar Conta</h2><h3 id="pay-desc-display" style="color:white; margin-bottom:10px;"></h3><div id="pay-val-expected" style="color:#888; margin-bottom:15px;"></div><label style="color:#aaa">Valor Pago</label><input type="number" id="pay-val-real" class="form-input" style="font-size:1.5rem; color:var(--success);"><label style="color:#aaa">Método</label><select id="pay-method" class="form-select"><option value="cash">Saldo Caixa</option><option value="credit">Cartão</option><option value="master">Mestra</option></select><input type="hidden" id="pay-id-target"><button class="btn-action btn-in" style="width:100%; margin-top:15px;" onclick="commitPayment()">✅ Pagar</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closePayModal()">Cancelar</button></div></div>
 
-    <div id="modal-guardian" class="modal-overlay">
-        <div class="modal-content" style="border:2px solid var(--gold)">
-            <h2 style="color:var(--gold); text-align:center; margin-bottom:15px;">🛡️ Guardião</h2>
-            <div id="guardian-step-1">
-                <input type="text" id="g-item" class="form-input" placeholder="O que comprar?">
-                <input type="number" id="g-price" class="form-input" placeholder="Valor (R$)">
-                <input type="text" id="g-reason" class="form-input" placeholder="Motivo?">
-                <textarea id="g-prompt-out" class="form-input" style="height:60px; font-size:0.7rem; margin-top:10px" readonly></textarea>
-                <button class="btn-action btn-neutral" style="width:100%; margin-top:5px" onclick="generateGuardianPrompt()">1. Copiar Comando</button>
-                <textarea id="g-json-in" class="form-input" style="height:60px; margin-top:15px" placeholder="Cole o JSON da IA..."></textarea>
-                <button class="btn-action btn-guardian" style="width:100%; margin-top:5px" onclick="processGuardianResponse()">2. Analisar</button>
-            </div>
-            <div id="guardian-result" class="hidden">
-                <div id="g-verdict-box" style="padding:15px; border-radius:8px; margin:10px 0; text-align:center; border:1px solid #555;">
-                    <h3 id="g-verdict-title" style="font-size:1.5rem; margin-bottom:10px;"></h3>
-                    <p id="g-verdict-text" style="font-size:1rem;"></p>
-                    <div id="g-suggested-box" style="color:var(--primary); margin-top:10px; font-weight:bold;"></div>
-                </div>
-                <div class="flex">
-                    <button class="btn-action btn-in" style="flex:1" onclick="recordVictory()">Resistir</button>
-                    <button class="btn-action btn-out" style="flex:1" onclick="confirmGuardianSpend()">Comprar</button>
-                </div>
-            </div>
-            <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Fechar</button>
-        </div>
-    </div>
-
     <div id="modal-github" class="modal-overlay">
         <div class="modal-content">
             <h2>Conexão Nuvem</h2>
@@ -239,8 +239,7 @@
             <input type="text" id="gh-repo" class="form-input" placeholder="Repositório">
             <input type="text" id="gh-file" class="form-input" placeholder="Arquivo.json">
             <button class="btn-action btn-in" style="width:100%; margin-bottom:10px" onclick="saveGithubConfig()">Salvar</button>
-            <button class="btn-action btn-danger" style="width:100%" onclick="forceReconnect()">Reset Total</button>
-            <button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button>
+            <button class="btn-action btn-danger" style="width:100%" onclick="forceReconnect()">Reset Total</button><button class="btn-action btn-neutral" style="width:100%; margin-top:10px" onclick="closeModals()">Cancelar</button>
         </div>
     </div>
 
@@ -254,6 +253,62 @@
         // --- DATA ---
         let appData = { masterBalance: 0, boxes: [], bills: [], transactions: [] };
         let currentSha = null; let isSaving = false; let transType = 'in'; let currentBoxIdx = null; let guardianSuggestedBoxId = null;
+
+        // --- INTELLIGENCE ENGINE (NEW) ---
+        function getIntelligencePayload() {
+            // 1. Past Intelligence (30 Days)
+            const d30 = new Date(); d30.setDate(new Date().getDate() - 30);
+            const tx30 = appData.transactions.filter(t => new Date(t.date) >= d30);
+            const total_in = tx30.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
+            const total_out = tx30.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
+            
+            // Top Leaks
+            const leaks = {};
+            tx30.filter(t => t.type === 'out').forEach(t => {
+                const cat = t.box ? (appData.boxes.find(b => b.id === t.box)?.label || 'Deleted') : 'Geral';
+                leaks[cat] = (leaks[cat] || 0) + t.amount;
+            });
+            const top_leaks = Object.entries(leaks).sort((a,b) => b[1] - a[1]).slice(0, 3).map(k => `${k[0]} (${fmt(k[1])})`);
+
+            // 2. Future Intelligence (Auto-Projection 90 Days)
+            const d90 = new Date(); d90.setDate(new Date().getDate() - 90);
+            const tx90_in = appData.transactions.filter(t => t.type === 'in' && new Date(t.date) >= d90);
+            const avg_income = tx90_in.reduce((s, t) => s + t.amount, 0) / 3;
+            
+            // Fixed Cost Baseline (Fixos + Impostos)
+            const fixedBoxes = appData.boxes.filter(b => 
+                b.label.toLowerCase().includes('fix') || 
+                b.label.toLowerCase().includes('imposto') || 
+                b.mode === 'monthly'
+            );
+            const fixed_cost_baseline = fixedBoxes.reduce((sum, box) => sum + (box.target || 0), 0);
+            
+            // Survival Index
+            const survival_index = fixed_cost_baseline > 0 ? (avg_income / fixed_cost_baseline).toFixed(2) : "Infinite";
+
+            // 3. Goal Validation
+            const pending_bills = appData.bills.map(b => `${b.desc} (${fmt(b.val)})`);
+            const project_alerts = [];
+            const projectBox = appData.boxes.find(b => b.label.toLowerCase().includes('projeto'));
+            if(projectBox) {
+                projectBox.subItems.forEach(i => {
+                    if(!i.dueDay) project_alerts.push(`ALERTA: Projeto '${i.name}' sem data definida.`);
+                });
+            }
+
+            return {
+                timestamp: new Date().toISOString(),
+                wallet: {
+                    current_balance: appData.masterBalance,
+                    burn_rate_30d: total_in > 0 ? ((total_out/total_in)*100).toFixed(1) + '%' : 'N/A'
+                },
+                past_insight: { total_in, total_out, top_leaks },
+                future_intelligence: { avg_income_3_months: avg_income, fixed_cost_baseline, survival_index },
+                pending_bills_REAL: pending_bills,
+                goal_validation: project_alerts,
+                box_structure: appData.boxes.map(b => ({name: b.label, current: b.current, target: b.target}))
+            };
+        }
 
         // --- UI FUNCTIONS ---
         function switchTab(t) {
@@ -271,7 +326,7 @@
         function toggleLoading(show) { document.getElementById('global-loading').style.display = show ? 'flex' : 'none'; }
         function fmt(v) { return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
 
-        // --- GUARDIAN LOGIC ---
+        // --- GUARDIAN LOGIC (UPDATED) ---
         function openGuardianModal() {
             document.getElementById('g-item').value = ''; document.getElementById('g-price').value = ''; document.getElementById('g-reason').value = ''; document.getElementById('g-prompt-out').value = ''; document.getElementById('g-json-in').value = '';
             document.getElementById('guardian-step-1').classList.remove('hidden');
@@ -281,8 +336,21 @@
         }
 
         function generateGuardianPrompt() {
-            const item = document.getElementById('g-item').value; const price = document.getElementById('g-price').value;
-            const prompt = `Warrior quer comprar: ${item} (${price}). Saldo: ${appData.masterBalance}. Dívidas: ${appData.bills.length}. JSON: { "verdict": "...", "message": "...", "safe_to_spend": bool, "suggested_box_name": "..." }`;
+            const item = document.getElementById('g-item').value; const price = document.getElementById('g-price').value; const reason = document.getElementById('g-reason').value;
+            const data = getIntelligencePayload();
+            
+            const prompt = `SYSTEM: Aja como SENTINELA FINANCEIRA (Rigor Militar).
+REQ: ${item} (R$ ${price}). MOTIVO: ${reason}.
+DADOS DE INTELIGÊNCIA:
+${JSON.stringify(data)}
+
+REGRAS:
+A) Se 'survival_index' < 1.1, NEGUE TUDO que for supérfluo. Motivo: "Risco de Quebra".
+B) Se houver alertas em 'goal_validation', avise.
+C) Use 'past_insight' para dar bronca se a categoria já vazou muito.
+
+Responda JSON: { "verdict": "APROVADO/NEGADO", "message": "...", "safe_to_spend": bool, "suggested_box_name": "..." }`;
+            
             document.getElementById('g-prompt-out').value = prompt;
         }
 
@@ -306,6 +374,28 @@
             if(guardianSuggestedBoxId) document.getElementById('t-box').value=guardianSuggestedBoxId;
         }
         function recordVictory() { alert("Vitória!"); closeModals(); }
+
+        // --- MANUAL AI (UPDATED) ---
+        function openManualAIDistribution() { 
+            const avail = appData.masterBalance; if(avail <= 0) return alert('Sem saldo.'); 
+            const data = getIntelligencePayload();
+            const prompt = `SYSTEM: IA ESTRATEGISTA. Saldo Atual: ${avail}.
+DADOS DE INTELIGÊNCIA:
+${JSON.stringify(data)}
+
+MISSÃO: Distribua o saldo nas caixas.
+REGRAS:
+1. Pague 'pending_bills_REAL' primeiro.
+2. Se 'survival_index' < 1.0, foque 100% em sobrevivência.
+3. Alerte sobre projetos sem data.
+
+Responda JSON: { "insight": "Resumo tático", "plan": [{ "name": "NomeCaixa", "val": 0, "reason": "..." }] }`; 
+            document.getElementById('ai-prompt-output').value = prompt; document.getElementById('modal-manual-ai').classList.add('active'); 
+        }
+        function copyPrompt() { document.getElementById('ai-prompt-output').select(); document.execCommand('copy'); alert('Copiado'); }
+        function processManualAI() { try { const j=JSON.parse(document.getElementById('ai-json-input').value.replace(/```json/g,'').replace(/```/g,'').trim()); const p=j.plan.map(x=>{const b=appData.boxes.find(y=>y.label.toLowerCase()===x.name.toLowerCase()); return {id:b?b.id:'gerais', val:x.val, name:x.name, reason:x.reason}}); document.getElementById('ai-insight').innerText=j.insight; const l=document.getElementById('distribution-list'); l.innerHTML=''; p.forEach(i=>{ if(i.val>0) l.innerHTML+=`<div class="flex" style="background:#222; padding:5px; margin-bottom:5px"><span>${i.name}<br><small>${i.reason}</small></span><input type="number" class="dist-inp" data-id="${i.id}" value="${i.val}" style="width:80px" oninput="recalcDist()"></div>`}); document.getElementById('modal-manual-ai').classList.remove('active'); document.getElementById('modal-distribute').classList.add('active'); recalcDist(); } catch(e){alert("Erro JSON");} }
+        async function commitDistribution() { let t=0; document.querySelectorAll('.dist-inp').forEach(i=>{const v=parseFloat(i.value); t+=v; if(v>0){const b=appData.boxes.find(x=>x.id==i.dataset.id); b.current+=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'dist',amount:v,desc:'IA Dist',box:b.id});}}); appData.masterBalance-=t; closeModals(); renderDashboard(); await forceSaveGitHub(); }
+        function recalcDist() { let t=0; document.querySelectorAll('.dist-inp').forEach(i=>t+=parseFloat(i.value||0)); document.getElementById('dist-total-alloc').innerText=fmt(t); document.getElementById('dist-remain').innerText=fmt(appData.masterBalance-t); }
 
         // --- CONFIG & BOXES ---
         function openConfigModal() {
@@ -491,13 +581,6 @@
         async function commitInvoicePay() { let total = 0; const creditBox = appData.boxes.find(b => b.mode === 'credit'); document.querySelectorAll('.inv-source-inp').forEach(i => { const val = parseFloat(i.value || 0); if(val > 0) { if(i.dataset.id === 'master') appData.masterBalance -= val; else { const b = appData.boxes.find(box => box.id === i.dataset.id); b.current -= val; } total += val; appData.transactions.push({id: Date.now(), date: new Date().toISOString(), type: 'out', amount: val, desc: 'Fatura', box: i.dataset.id}); } }); if(total > 0) { creditBox.current -= total; closeModals(); renderDashboard(); await forceSaveGitHub(); } }
         function generateReport() { const s=document.getElementById('rep-start').value, e=document.getElementById('rep-end').value; const txs=appData.transactions.filter(t=>{const d=new Date(t.date); return d>=new Date(s) && d<=new Date(e+'T23:59:59')}); let i=0, o=0; const tbody = document.getElementById('rep-table-body'); tbody.innerHTML = ''; txs.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t => { if(t.type === 'in') i += t.amount; else if(t.type === 'out') o += t.amount; const box = appData.boxes.find(b=>b.id===t.box); tbody.innerHTML += `<tr><td>${new Date(t.date).toLocaleDateString()}</td><td>${t.desc}</td><td>${box?box.label:t.box}</td><td class="${t.type==='in'?'text-green':'text-red'}" style="text-align:right">${fmt(t.amount)}</td></tr>`; }); document.getElementById('rep-in').innerText = fmt(i); document.getElementById('rep-out').innerText = fmt(o); document.getElementById('rep-bal').innerText = fmt(i-o); }
         function exportCSV() { /* same */ }
-
-        // --- MANUAL AI ---
-        function openManualAIDistribution() { const avail = appData.masterBalance; if(avail <= 0) return alert('Sem saldo.'); const pendingTotal = appData.bills.reduce((s,b)=>s+b.val,0); const prompt = `Sou Warrior. Saldo: ${avail}. DÍVIDAS REAIS (Total: ${pendingTotal}): ${JSON.stringify(appData.bills.map(b=>b.desc))}. ESTRUTURA: ${JSON.stringify(appData.boxes.map(b=>({n:b.label, v:b.current, i:b.subItems})))}. IGNORE itens da estrutura se não estiverem nas dívidas reais (já pagos). Prioridade: Dívidas > P1 > Reserva. Responda JSON: { "insight": "...", "plan": [{ "name": "NomeCaixa", "val": 0, "reason": "..." }] }`; document.getElementById('ai-prompt-output').value = prompt; document.getElementById('modal-manual-ai').classList.add('active'); }
-        function copyPrompt() { document.getElementById('ai-prompt-output').select(); document.execCommand('copy'); alert('Copiado'); }
-        function processManualAI() { try { const j=JSON.parse(document.getElementById('ai-json-input').value.replace(/```json/g,'').replace(/```/g,'').trim()); const p=j.plan.map(x=>{const b=appData.boxes.find(y=>y.label.toLowerCase()===x.name.toLowerCase()); return {id:b?b.id:'gerais', val:x.val, name:x.name, reason:x.reason}}); document.getElementById('ai-insight').innerText=j.insight; const l=document.getElementById('distribution-list'); l.innerHTML=''; p.forEach(i=>{ if(i.val>0) l.innerHTML+=`<div class="flex" style="background:#222; padding:5px; margin-bottom:5px"><span>${i.name}<br><small>${i.reason}</small></span><input type="number" class="dist-inp" data-id="${i.id}" value="${i.val}" style="width:80px" oninput="recalcDist()"></div>`}); document.getElementById('modal-manual-ai').classList.remove('active'); document.getElementById('modal-distribute').classList.add('active'); recalcDist(); } catch(e){alert("Erro JSON");} }
-        async function commitDistribution() { let t=0; document.querySelectorAll('.dist-inp').forEach(i=>{const v=parseFloat(i.value); t+=v; if(v>0){const b=appData.boxes.find(x=>x.id==i.dataset.id); b.current+=v; appData.transactions.push({id:Date.now(),date:new Date().toISOString(),type:'dist',amount:v,desc:'IA Dist',box:b.id});}}); appData.masterBalance-=t; closeModals(); renderDashboard(); await forceSaveGitHub(); }
-        function recalcDist() { let t=0; document.querySelectorAll('.dist-inp').forEach(i=>t+=parseFloat(i.value||0)); document.getElementById('dist-total-alloc').innerText=fmt(t); document.getElementById('dist-remain').innerText=fmt(appData.masterBalance-t); }
 
         function sanitizeBills() { const now = new Date(); appData.bills = appData.bills.filter(b => { if(!b.isAuto) return true; return !appData.transactions.some(t => { const d = new Date(t.date); return d.getMonth() === now.getMonth() && t.desc.toLowerCase().includes(b.desc.toLowerCase()) && (t.type === 'out' || t.type === 'deleted-auto'); }); }); }
         function autoGenerateBills() { const now = new Date(); const key = `${now.getFullYear()}-${now.getMonth()}`; appData.boxes.forEach(b => { if(b.subItems) b.subItems.forEach(i => { if(i.dueDay && i.freq === 'monthly') { const id = `auto_${b.id}_${i.name}_${key}`; const paid = appData.transactions.some(t => new Date(t.date).getMonth() === now.getMonth() && t.desc.toLowerCase().includes(i.name.toLowerCase()) && (t.type === 'out' || t.type === 'deleted-auto')); if(!paid && !appData.bills.find(x => x.autoId === id)) { appData.bills.push({id:Date.now()+Math.random(), autoId:id, desc:i.name, val:i.val, date:new Date(now.getFullYear(), now.getMonth(), i.dueDay).toISOString().split('T')[0], boxId:b.id, isAuto:true}); } } }); }); }
